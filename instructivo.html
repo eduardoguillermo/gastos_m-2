@@ -496,7 +496,7 @@
         <div class="section-subtitle">Seguimiento de fondos guardados por subrubro</div>
       </div>
     </div>
-    <p>Registrá <b>ingresos</b> y <b>retiros</b> de ahorro por subrubro (por ejemplo, "Vacaciones" o "Fondo de emergencia"). El total general se ve en el encabezado del modal.</p>
+    <p>Registrá <b>ingresos</b> y <b>retiros</b> de ahorro por subrubro (por ejemplo, "Vacaciones" o "Fondo de emergencia"), cada uno en <b>$U o USD</b>. Cada tarjeta de subrubro muestra su saldo en ambas monedas por separado — no se suman entre sí.</p>
     <h2>Subrubros</h2>
     <p>El botón ⚙️ Subrubros te permite crear, renombrar o eliminar las categorías de ahorro.</p>
   </section>
@@ -581,6 +581,21 @@ console.log(gToken ? 'Token activo' : 'Sin token')</pre>
         <div class="section-title">Historial de cambios</div>
         <div class="section-subtitle">Registro de versiones — de más reciente a más antigua</div>
       </div>
+    </div>
+
+    <div class="changelog-entry">
+      <div class="changelog-version"><span class="v-num">v13.82-dev2</span><span class="changelog-tag tag-feature">feature</span></div>
+      <ul class="changelog-list">
+        <li>Ahorros ahora soporta $U y USD: cada movimiento tiene su moneda, cada subrubro muestra ambos saldos por separado</li>
+        <li>Tabla de historial de ahorros con columna Moneda</li>
+      </ul>
+    </div>
+
+    <div class="changelog-entry">
+      <div class="changelog-version"><span class="v-num">v13.81-dev2</span><span class="changelog-tag tag-fix">fix</span></div>
+      <ul class="changelog-list">
+        <li>Corrección de monedas: el switch y los campos ahora dicen $U (pesos uruguayos) y USD, no ARS</li>
+      </ul>
     </div>
 
     <div class="changelog-entry">
