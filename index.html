@@ -320,7 +320,8 @@
             font-size: 11px; flex-shrink: 0; gap: 8px;
         }
         .footer-left  { display: flex; align-items: center; gap: 8px; }
-        .footer-right { display: flex; gap: 6px; }
+        .footer-right { display: flex; gap: 6px; align-items: center; }
+        .footer-divider { width: 1px; align-self: stretch; margin: 4px 4px; background: var(--border); flex-shrink: 0; }
 
         .storage-warn {
             padding: 3px 7px; background: var(--gasto-bg); border: 1px solid #fca5a5;
@@ -359,7 +360,7 @@
 <!-- SPLASH -->
 <div id="splash">
     <div class="splash-logo">Finanzas<span>Pro</span></div>
-    <div class="splash-version" style="display:flex;align-items:baseline;gap:8px;justify-content:center;">v13.77-dev2 · Ledger Edition (DEV) <span style="font-family:'Dancing Script',cursive;font-size:17px;color:#93c5fd;">especial para Mariela</span></div>
+    <div class="splash-version" style="display:flex;align-items:baseline;gap:8px;justify-content:center;">v13.78-dev2 · Ledger Edition (DEV) <span style="font-family:'Dancing Script',cursive;font-size:17px;color:#93c5fd;">especial para Mariela</span></div>
     <div style="position:absolute;bottom:18%;right:8%;font-family:'Dancing Script',cursive;font-size:32px;color:#93c5fd;pointer-events:none">Development by Guille</div>
     <div class="splash-progress-track">
         <div class="splash-progress-bar" id="splash-bar"></div>
@@ -640,15 +641,24 @@
         </div>
         <div class="footer-right">
             <button class="btn-secondary btn-sm" onclick="window.open('./instructivo.html','_blank','width=1100,height=750,resizable=yes,scrollbars=yes')" title="Manual de usuario" style="background:#6366f1;color:white;border-color:#6366f1;">❓ Ayuda</button>
+
+            <span class="footer-divider"></span>
+
             <button class="btn-secondary btn-sm" id="btn-carpeta" onclick="seleccionarCarpetaBackup()" title="Vincular carpeta para backup automático">📂 Carpeta</button>
-            <button class="btn-secondary btn-sm" onclick="exportarBackup()">📥 Exportar</button>
-            <button class="btn-secondary btn-sm" onclick="document.getElementById('file-import').click()">📤 Importar</button>
+            <button class="btn-secondary btn-sm" onclick="exportarBackup()" title="Exportar backup a archivo">📥 Exportar</button>
+            <button class="btn-secondary btn-sm" onclick="document.getElementById('file-import').click()" title="Importar backup desde archivo">📤 Importar</button>
             <button class="btn-secondary btn-sm" id="btn-gm-drive-up" onclick="gmDriveSubir()" title="Subir backup a Drive" style="display:none;background:#4285f4;color:white;border-color:#4285f4;">☁️ Drive</button>
             <button class="btn-secondary btn-sm" id="btn-gm-drive-down" onclick="gmDriveRestaurar()" title="Restaurar desde Drive" style="display:none;background:#4285f4;color:white;border-color:#4285f4;">📂 Drive</button>
-            <button class="btn-secondary btn-sm" onclick="gmAbrirAhorros()" style="background:#0d9488;color:white;border-color:#0d9488;">💰 Ahorros</button>
+            <button class="btn-secondary btn-sm" onclick="gmMostrarSnapshots()" title="Ver/restaurar snapshots locales" style="background:#0f766e;color:white;border-color:#0f766e;">💾 Local</button>
+
+            <span class="footer-divider"></span>
+
+            <button class="btn-secondary btn-sm" onclick="gmAbrirAhorros()" title="Ahorros por subrubro" style="background:#0d9488;color:white;border-color:#0d9488;">💰 Ahorros</button>
             <button class="btn-secondary btn-sm" onclick="gmAbrirTortas()" title="Gastos por rubro" style="background:#b45309;color:white;border-color:#b45309;">🥧 Rubros</button>
             <button class="btn-secondary btn-sm" onclick="gmAbrirHistorial()" title="Ver historial mensual" style="background:#6d28d9;color:white;border-color:#6d28d9;">📅 Historial</button>
-            <button class="btn-secondary btn-sm" onclick="gmMostrarSnapshots()" title="Ver/restaurar snapshots locales" style="background:#0f766e;color:white;border-color:#0f766e;">💾 Local</button>
+
+            <span class="footer-divider"></span>
+
             <button class="btn-secondary btn-sm" onclick="gmSalir()" title="Guardar y salir" style="background:#334155;color:white;border-color:#334155;">🚪 Salir</button>
             <input type="file" id="file-import" accept=".json" style="display:none" onchange="importarBackup(event)">
         </div>
@@ -661,7 +671,7 @@
 // ════════════════════════════════════════════════════
 //  CONSTANTES Y ESTADO GLOBAL
 // ════════════════════════════════════════════════════
-const APP_VERSION = '13.77-dev2';
+const APP_VERSION = '13.78-dev2';
 const DEV_MODE = true; // gastos_m-2: entorno de desarrollo aislado de producción
 
 // ── HELPER: botón de ayuda contextual ──
@@ -1008,6 +1018,34 @@ function toast(msg, type = 'success', duration = 2600) {
     el.innerHTML = `<span>${icons[type]||'·'}</span><span>${msg}</span>`;
     document.getElementById('toast-container').appendChild(el);
     setTimeout(() => el.remove(), duration);
+}
+
+// ════════════════════════════════════════════════════
+//  EDICIÓN INLINE DE NOMBRES (doble clic)
+// ════════════════════════════════════════════════════
+function gmEditarNombreInline(el, onGuardar) {
+    const actual = el.textContent.trim();
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = actual;
+    input.className = 'inline-edit-input';
+    input.style.cssText = 'font: inherit; font-weight: inherit; border: 1px solid var(--primary); border-radius: 4px; padding: 1px 4px; width: 100%; max-width: 100%; background: var(--bg-card); color: var(--text-main); box-sizing: border-box;';
+    el.replaceWith(input);
+    input.focus();
+    input.select();
+    let resuelto = false;
+    function confirmar() {
+        if (resuelto) return;
+        resuelto = true;
+        const val = input.value.trim();
+        if (val && val !== actual) { onGuardar(val); }
+        else { onGuardar(null); }
+    }
+    input.addEventListener('blur', confirmar);
+    input.addEventListener('keydown', e => {
+        if (e.key === 'Enter') { input.blur(); }
+        else if (e.key === 'Escape') { resuelto = true; onGuardar(null); }
+    });
 }
 
 // ════════════════════════════════════════════════════
@@ -1505,7 +1543,7 @@ function gmRenderServicios() {
         var estadoTxt = pagoMes ? '✅ Pagado ' + gmFmtFecha(pagoMes) : (dias < 0 ? '⚠️ Vencido ' + gmFmtFecha(venc) : 'Vence ' + gmFmtFecha(venc));
         return '<div style="display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:6px;background:var(--bg-subtle);margin-bottom:5px;border-left:3px solid ' + semaforo + ';">'
             + '<div style="flex:1;min-width:0;">'
-            + '<div style="font-size:12px;font-weight:700;color:var(--text-main);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + s.nombre + '</div>'
+            + '<div class="fijo-nombre-inline" data-svc-id="' + s.id + '" title="Doble clic para renombrar" style="font-size:12px;font-weight:700;color:var(--text-main);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:text;">' + s.nombre + '</div>'
             + '<div style="font-size:10px;color:var(--text-muted);">' + fmt(s.monto) + ' · <span style="color:' + semaforo + ';font-weight:600;">' + estadoTxt + '</span></div>'
             + '</div>'
             + (pagoMes ? '' : '<button data-svc="' + s.id + '" class="btn-pagar-svc" style="background:var(--ingreso);color:white;border:none;border-radius:4px;padding:3px 8px;font-size:10px;cursor:pointer;white-space:nowrap;">Pagar</button>')
@@ -1524,6 +1562,18 @@ function gmRenderServicios() {
     });
     cont.querySelectorAll('[data-del-svc]').forEach(function(btn) {
         btn.addEventListener('click', function() { gmEliminarServicio(parseInt(btn.dataset.delSvc)); });
+    });
+    cont.querySelectorAll('.fijo-nombre-inline').forEach(function(elNombre) {
+        elNombre.addEventListener('dblclick', function() {
+            var svcId = parseInt(elNombre.dataset.svcId);
+            gmEditarNombreInline(elNombre, function(nuevoNombre) {
+                if (nuevoNombre) {
+                    var svc = DB.fijos.servicios.find(function(x) { return x.id === svcId; });
+                    if (svc) { svc.nombre = nuevoNombre; save(); toast('Servicio renombrado.', 'success'); }
+                }
+                gmRenderServicios();
+            });
+        });
     });
 }
 
@@ -3046,13 +3096,22 @@ function render() {
             const div = document.createElement('div');
             div.className = 'rub-row';
             div.innerHTML = `
-                <span><strong style="font-size:12px;">${r.nombre}</strong><span class="badge ${r.tipo}" style="margin-left:4px;">${r.tipo === 'gasto' ? 'G' : 'I'}</span>${txtLim}</span>
+                <span><strong class="rub-nombre-inline" data-rubro-id="${r.id}" title="Doble clic para renombrar" style="font-size:12px;cursor:text;">${r.nombre}</strong><span class="badge ${r.tipo}" style="margin-left:4px;">${r.tipo === 'gasto' ? 'G' : 'I'}</span>${txtLim}</span>
                 <div style="display:flex; gap:2px;">
                     <button class="btn-icon" data-edit="${r.id}" title="Editar">✏️</button>
                     <button class="btn-icon danger" data-del="${r.id}" title="Eliminar">🗑️</button>
                 </div>`;
             div.querySelector('[data-edit]').addEventListener('click', () => editarRubro(r.id));
             div.querySelector('[data-del]').addEventListener('click',  () => eliminarRubro(r.id));
+            div.querySelector('.rub-nombre-inline').addEventListener('dblclick', function() {
+                gmEditarNombreInline(this, (nuevoNombre) => {
+                    if (nuevoNombre) {
+                        const rubro = DB.rubros.find(x => x.id === r.id);
+                        if (rubro) { rubro.nombre = nuevoNombre; save(); toast('Rubro renombrado.', 'success'); }
+                    }
+                    render();
+                });
+            });
             listaRubros.appendChild(div);
         });
     }
