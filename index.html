@@ -70,9 +70,10 @@
             box-shadow: 0 0 10px rgba(59,130,246,0.8);
             transition: width 5s linear;
         }
-        .splash-logo { font-size: 56px; font-weight: 800; color: #fff; letter-spacing: -1px; }
+        .splash-logo { position: relative; font-size: 56px; font-weight: 800; color: #fff; letter-spacing: -1px; }
         .splash-logo span { color: #93c5fd; }
         .splash-version { font-size: 22px; color: #93c5fd; font-weight: 600; letter-spacing: .5px; }
+        #splash-mariela { position: absolute; font-family: 'Dancing Script', cursive; font-size: 17px; color: #93c5fd; font-weight: 600; white-space: nowrap; }
         /* spinner removido — reemplazado por barra de progreso */
 
         /* ── TOAST / MODAL ── */
@@ -359,13 +360,47 @@
 
 <!-- SPLASH -->
 <div id="splash">
-    <div class="splash-logo">Finanzas<span>Pro</span></div>
-    <div class="splash-version" style="display:flex;align-items:baseline;gap:8px;justify-content:center;">v13.78-dev2 · Ledger Edition (DEV) <span style="font-family:'Dancing Script',cursive;font-size:17px;color:#93c5fd;">especial para Mariela</span></div>
+    <div class="splash-logo" id="splash-logo">Finanzas<span>Pr<span id="splash-o">o</span></span><span id="splash-mariela">especial <span id="splash-para">para</span> Mariela</span></div>
+    <div class="splash-version" style="display:flex;align-items:baseline;gap:8px;justify-content:center;">v13.79-dev2 · Ledger Edition (DEV)</div>
     <div style="position:absolute;bottom:18%;right:8%;font-family:'Dancing Script',cursive;font-size:32px;color:#93c5fd;pointer-events:none">Development by Guille</div>
     <div class="splash-progress-track">
         <div class="splash-progress-bar" id="splash-bar"></div>
     </div>
 </div>
+
+<script>
+(function() {
+    function posicionarMariela() {
+        var wrap = document.getElementById('splash-logo');
+        var o    = document.getElementById('splash-o');
+        var txt  = document.getElementById('splash-mariela');
+        var para = document.getElementById('splash-para');
+        if (!wrap || !o || !txt || !para) return;
+        txt.style.left = '0px'; txt.style.top = '0px'; txt.style.transform = 'none';
+        var wrapRect = wrap.getBoundingClientRect();
+        var oRect    = o.getBoundingClientRect();
+        var centerX  = oRect.left + oRect.width / 2 - wrapRect.left;
+        var centerY  = oRect.top + oRect.height / 2 - wrapRect.top;
+        var angulo   = 30 * Math.PI / 180;
+        var radio    = oRect.width * 0.55;
+        var extraDerecha = 10;
+        var anchorX  = centerX + Math.cos(angulo) * radio + extraDerecha;
+        var anchorY  = centerY - Math.sin(angulo) * radio;
+        var txtRect  = txt.getBoundingClientRect();
+        var paraRect = para.getBoundingClientRect();
+        var paraCenterX = paraRect.left + paraRect.width / 2 - txtRect.left;
+        var paraCenterY = paraRect.top + paraRect.height / 2 - txtRect.top;
+        txt.style.left = (anchorX - paraCenterX) + 'px';
+        txt.style.top  = (anchorY - paraCenterY) + 'px';
+        txt.style.transformOrigin = paraCenterX + 'px ' + paraCenterY + 'px';
+        txt.style.transform = 'rotate(45deg)';
+    }
+    window.addEventListener('load', posicionarMariela);
+    if (document.fonts) { document.fonts.ready.then(posicionarMariela); }
+    setTimeout(posicionarMariela, 150);
+    setTimeout(posicionarMariela, 500);
+})();
+</script>
 
 <!-- TOASTS -->
 <div id="toast-container"></div>
@@ -671,7 +706,7 @@
 // ════════════════════════════════════════════════════
 //  CONSTANTES Y ESTADO GLOBAL
 // ════════════════════════════════════════════════════
-const APP_VERSION = '13.78-dev2';
+const APP_VERSION = '13.79-dev2';
 const DEV_MODE = true; // gastos_m-2: entorno de desarrollo aislado de producción
 
 // ── HELPER: botón de ayuda contextual ──
