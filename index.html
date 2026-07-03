@@ -117,6 +117,9 @@
         .hdr-brand { display: flex; align-items: baseline; gap: 8px; }
         .hdr-brand h1 { font-size: 14px; font-weight: 800; letter-spacing: -.3px; }
         .hdr-brand h1 span { color: var(--primary); }
+        .vista-moneda-switch { display: inline-flex; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; align-self: center; }
+        .vista-moneda-btn { border: none; background: var(--bg-card); color: var(--text-muted); font-size: 10px; font-weight: 700; padding: 3px 8px; cursor: pointer; letter-spacing: .3px; }
+        .vista-moneda-btn.vista-moneda-activa { background: var(--primary); color: white; }
         .hdr-version {
             font-size: 9px; font-weight: 700; text-transform: uppercase;
             letter-spacing: .8px; color: var(--text-muted);
@@ -361,7 +364,7 @@
 <!-- SPLASH -->
 <div id="splash">
     <div class="splash-logo" id="splash-logo">Finanzas<span>Pr<span id="splash-o">o</span></span><span id="splash-mariela">especial <span id="splash-para">para</span> Mariela</span></div>
-    <div class="splash-version" style="display:flex;align-items:baseline;gap:8px;justify-content:center;">v13.79-dev2 · Ledger Edition (DEV)</div>
+    <div class="splash-version" style="display:flex;align-items:baseline;gap:8px;justify-content:center;">v13.80-dev2 · Ledger Edition (DEV)</div>
     <div style="position:absolute;bottom:18%;right:8%;font-family:'Dancing Script',cursive;font-size:32px;color:#93c5fd;pointer-events:none">Development by Guille</div>
     <div class="splash-progress-track">
         <div class="splash-progress-bar" id="splash-bar"></div>
@@ -425,6 +428,10 @@
             <h1>Finanzas<span>Pro</span></h1>
             <span class="hdr-version" id="hdr-version">${APP_VERSION}</span>
             <span style="background:#dc2626;color:white;font-size:10px;font-weight:800;padding:2px 8px;border-radius:4px;letter-spacing:.5px;margin-left:2px;">DEV</span>
+            <div class="vista-moneda-switch">
+                <button id="btn-vista-ars" class="vista-moneda-btn vista-moneda-activa" onclick="cambiarVistaMoneda('ARS')">ARS</button>
+                <button id="btn-vista-usd" class="vista-moneda-btn" onclick="cambiarVistaMoneda('USD')">USD</button>
+            </div>
             <span style="font-family:'Dancing Script',cursive;font-size:13px;color:#1e40af;margin-left:6px;white-space:nowrap">Development by Guille</span>
         </div>
 
@@ -487,8 +494,15 @@
                     </div>
                     <div style="display:flex; gap:6px;">
                         <div class="form-group" style="flex:1">
-                            <label for="mov-monto">Monto ($)</label>
+                            <label for="mov-monto">Monto</label>
                             <input type="number" id="mov-monto" step="0.01" min="0.01" placeholder="0,00">
+                        </div>
+                        <div class="form-group" style="width:72px;">
+                            <label for="mov-moneda">Moneda</label>
+                            <select id="mov-moneda">
+                                <option value="ARS">ARS</option>
+                                <option value="USD">USD</option>
+                            </select>
                         </div>
                         <div class="form-group" style="flex:1">
                             <label for="mov-fecha">Fecha</label>
@@ -523,7 +537,7 @@
 
                     <div class="form-group">
                         <label for="mov-notas">Notas <span style="font-weight:400;color:var(--text-muted);font-size:10px;">(opcional)</span></label>
-                        <input type="text" id="mov-notas" autocomplete="off" placeholder="Detalle adicional...">
+                        <input type="text" id="mov-notas" list="lista-notas-usadas" autocomplete="off" placeholder="Detalle adicional...">
                     </div>
                     <button id="btn-guardar-movimiento" class="btn-primary btn-block" style="margin-top:8px;">
                         ✓ Asentar registro
@@ -623,12 +637,18 @@
                 <span class="panel-title" style="margin-bottom:0; padding-bottom:0; border-bottom:none;display:flex;align-items:center;">📊 Libro diario<span id="ayuda-libro-diario"></span></span>
                 <div style="display:flex; gap:4px; align-items:center;">
                     <select id="filtro-avanzado" class="filter-select"></select>
+                    <button class="btn-dark btn-sm" onclick="gmExportarLibroDiarioXLSX()" title="Exportar filtro actual a Excel">📊</button>
                     <button class="btn-dark btn-sm" onclick="ejecutarImpresionPWA()">🖨️</button>
                 </div>
             </div>
             <hr class="divider">
 
             <div class="date-filter-strip">
+                <div class="date-filter-group" style="flex:1;min-width:120px;">
+                    <label>Buscar</label>
+                    <input type="text" id="filtro-busqueda-texto" list="lista-notas-usadas" placeholder="Concepto o nota…" autocomplete="off">
+                    <datalist id="lista-notas-usadas"></datalist>
+                </div>
                 <div class="date-filter-group">
                     <label>Desde</label>
                     <input type="date" id="filtro-fecha-desde">
@@ -638,7 +658,7 @@
                     <input type="date" id="filtro-fecha-hasta">
                 </div>
                 <div>
-                    <button class="btn-secondary btn-sm" onclick="limpiarFiltrosFecha()" title="Limpiar fechas">✕</button>
+                    <button class="btn-secondary btn-sm" onclick="limpiarFiltrosFecha()" title="Limpiar fechas y búsqueda">✕</button>
                 </div>
             </div>
 
@@ -706,8 +726,29 @@
 // ════════════════════════════════════════════════════
 //  CONSTANTES Y ESTADO GLOBAL
 // ════════════════════════════════════════════════════
-const APP_VERSION = '13.79-dev2';
+const APP_VERSION = '13.80-dev2';
 const DEV_MODE = true; // gastos_m-2: entorno de desarrollo aislado de producción
+
+let vistaMoneda = 'ARS';
+function fmtVista(v) {
+    if (vistaMoneda === 'USD') return 'US$' + Number(v).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    return fmt(v);
+}
+function cambiarVistaMoneda(m) {
+    vistaMoneda = m;
+    const bArs = document.getElementById('btn-vista-ars');
+    const bUsd = document.getElementById('btn-vista-usd');
+    if (bArs && bUsd) {
+        bArs.classList.toggle('vista-moneda-activa', m === 'ARS');
+        bUsd.classList.toggle('vista-moneda-activa', m === 'USD');
+    }
+    const movMonedaEl = document.getElementById('mov-moneda');
+    if (movMonedaEl && !document.getElementById('btn-guardar-movimiento')?.dataset.editId) {
+        movMonedaEl.value = m;
+    }
+    resetPaginacion();
+    render();
+}
 
 // ── HELPER: botón de ayuda contextual ──
 function btnAyuda(ancla) {
@@ -1248,6 +1289,12 @@ function labelCuenta(key) {
 // ════════════════════════════════════════════════════
 //  PRESUPUESTOS HISTÓRICOS
 // ════════════════════════════════════════════════════
+function claveMesAnterior(claveMes) {
+    const [y, m] = claveMes.split('-').map(Number);
+    const ant = new Date(y, m - 2, 1);
+    return `${ant.getFullYear()}-${String(ant.getMonth()+1).padStart(2,'0')}`;
+}
+
 function getLimiteHistorico(claveMes, rubroId) {
     if (DB.presupuestosHistoricos[claveMes]?.[rubroId] !== undefined) {
         return DB.presupuestosHistoricos[claveMes][rubroId];
@@ -1275,6 +1322,29 @@ function fmt(v) {
 // ════════════════════════════════════════════════════
 //  HISTORIAL MENSUAL
 // ════════════════════════════════════════════════════
+function gmExportarLibroDiarioXLSX() {
+    const movs = obtenerFiltrados();
+    if (!movs.length) { toast('No hay movimientos para exportar con este filtro.', 'error'); return; }
+
+    const rows = [['Fecha','Concepto','Tipo','Rubro','Cuenta','Moneda','Monto','Notas']];
+    [...movs].sort((a,b)=>a.fecha>b.fecha?-1:1).forEach(m => {
+        const rubro = DB.rubros.find(r=>r.id===m.rubroId);
+        const cuenta = DB.cuentas[m.origen] || m.origen || '-';
+        rows.push([
+            m.fecha, m.concepto, getTipoMov(m),
+            rubro?rubro.nombre:'-', cuenta, m.moneda || 'ARS',
+            parseFloat(m.monto)||0, m.notas||''
+        ]);
+    });
+
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols'] = [{wch:12},{wch:30},{wch:10},{wch:18},{wch:15},{wch:8},{wch:12},{wch:25}];
+    XLSX.utils.book_append_sheet(wb, ws, 'Libro diario');
+    XLSX.writeFile(wb, 'libro_diario_' + hoyISO() + '.xlsx');
+    toast('✅ Excel exportado (' + movs.length + ' movimientos)', 'success');
+}
+
 function gmExportarHistorialXLSX() {
     const fTipo    = document.getElementById('hist-f-tipo')?.value || '';
     const fRubroId = parseInt(document.getElementById('hist-f-rubro')?.value) || 0;
@@ -1974,9 +2044,19 @@ function gmMostrarVencimientos() {
     items.sort(function(a,b){ return a.dias - b.dias; });
 
     var rows = items.map(function(it) {
-        var color = it.mesAnt ? '#7c3aed' : (it.dias < 0 ? '#dc2626' : it.dias === 0 ? '#d97706' : it.dias <= 2 ? '#d97706' : '#ca8a04');
+        var esCuota = it.tipoObj === 'cuota';
+        var color, bg;
+        if (it.mesAnt) {
+            color = '#dc2626'; bg = 'rgba(220,38,38,.08)';
+        } else if (esCuota) {
+            color = '#a78bfa'; bg = 'rgba(167,139,250,.10)';
+        } else {
+            var urgente = it.dias <= 2;
+            color = urgente ? '#ec4899' : '#f472b6';
+            bg = urgente ? 'rgba(236,72,153,.10)' : 'rgba(244,114,182,.08)';
+        }
         var badge = it.mesAnt ? 'Mes ant.' : (it.dias < 0 ? 'Vencido' : it.dias === 0 ? 'Hoy' : 'En ' + it.dias + ' día' + (it.dias===1?'':'s'));
-        return '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;margin-bottom:6px;background:var(--bg-subtle);border-left:3px solid ' + color + ';">'
+        return '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;margin-bottom:6px;background:' + bg + ';border-left:3px solid ' + color + ';">'
             + '<div style="flex:1;min-width:0;">'
             + '<div style="font-size:13px;font-weight:700;color:var(--text-main);">' + it.nombre + '</div>'
             + '<div style="font-size:11px;color:var(--text-muted);">' + it.tipo + ' · ' + fmt(it.monto) + ' · vence ' + gmFmtFecha(it.venc) + '</div>'
@@ -1994,7 +2074,7 @@ function gmMostrarVencimientos() {
     ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:4000;display:flex;align-items:center;justify-content:center;padding:16px;';
     ov.innerHTML = '<div style="background:var(--bg-card);border-radius:14px;width:100%;max-width:420px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.4);">'
         + '<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:2px solid var(--border);background:var(--bg-subtle);">'
-        + '<div style="display:flex;align-items:center;gap:8px;"><span style="font-size:18px;">⚠️</span><span style="font-weight:700;font-size:15px;color:var(--text-main);">Próximos vencimientos</span></div>'
+        + '<div style="display:flex;align-items:center;gap:8px;"><span style="font-size:18px;">⚠️</span><span style="font-weight:700;font-size:15px;color:var(--text-main);">Próximos vencimientos</span>' + btnAyuda('vencimientos') + '</div>'
         + '<button id="btn-cerrar-venc" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--text-muted);">×</button>'
         + '</div>'
         + '<div style="padding:14px 16px;max-height:70vh;overflow-y:auto;">' + rows + '</div>'
@@ -2429,6 +2509,7 @@ function guardarMovimiento() {
     if (!ok) { toast('Completá los campos requeridos.', 'error'); return; }
 
     const fecha = fechaEl.value || hoyISO();
+    const moneda = document.getElementById('mov-moneda')?.value || 'ARS';
 
     if (flujo === 'transferencia') {
         const origen  = document.getElementById('mov-transf-origen').value;
@@ -2436,7 +2517,7 @@ function guardarMovimiento() {
         if (origen === destino) { toast('Origen y destino no pueden ser iguales.', 'error'); return; }
         DB.movimientos.push({
             id: DB.nid++, concepto: conceptoEl.value.trim() || 'Transferencia',
-            monto, rubroId: 0, origen, destino, fecha
+            monto, rubroId: 0, origen, destino, fecha, moneda
         });
     } else {
         const rubroId = parseInt(document.getElementById('mov-rubro').value);
@@ -2445,7 +2526,7 @@ function guardarMovimiento() {
         const notas = (document.getElementById('mov-notas')?.value||'').trim();
         DB.movimientos.push({
             id: DB.nid++, concepto: conceptoEl.value.trim(),
-            monto, rubroId, origen, destino: null, fecha,
+            monto, rubroId, origen, destino: null, fecha, moneda,
             notas: notas || undefined
         });
     }
@@ -2463,7 +2544,7 @@ function guardarMovimiento() {
         if (idx !== -1) {
             const notas2 = (document.getElementById('mov-notas')?.value||'').trim();
             DB.movimientos[idx] = Object.assign({}, DB.movimientos[idx], {
-                concepto: conceptoEl.value.trim(), monto, fecha,
+                concepto: conceptoEl.value.trim(), monto, fecha, moneda,
                 notas: notas2 || undefined
             });
             if (flujo !== 'transferencia') {
@@ -2572,6 +2653,8 @@ function editarMovimiento(id) {
     document.getElementById('mov-concepto').value = m.concepto || '';
     document.getElementById('mov-monto').value    = m.monto || '';
     document.getElementById('mov-fecha').value    = m.fecha || hoyISO();
+    const monedaEl = document.getElementById('mov-moneda');
+    if (monedaEl) monedaEl.value = m.moneda || 'ARS';
     const notasEl = document.getElementById('mov-notas');
     if(notasEl) notasEl.value = m.notas || '';
     if (m.rubroId && document.getElementById('mov-rubro')) {
@@ -2615,7 +2698,7 @@ function renderTop5Rubros() {
     if (!el) return;
     const mesActual = hoyISO().slice(0,7);
     const gastosPorRubro = {};
-    DB.movimientos.filter(m => m.tipo === 'gasto' && claveMesDeISO(m.fecha) === mesActual).forEach(m => {
+    DB.movimientos.filter(m => m.tipo === 'gasto' && claveMesDeISO(m.fecha) === mesActual && (m.moneda||'ARS') === vistaMoneda).forEach(m => {
         gastosPorRubro[m.rubroId] = (gastosPorRubro[m.rubroId]||0) + (parseFloat(m.monto)||0);
     });
     const top = Object.entries(gastosPorRubro).sort((a,b)=>b[1]-a[1]).slice(0,5);
@@ -2627,7 +2710,7 @@ function renderTop5Rubros() {
         return `<div style="margin-bottom:6px;">
             <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px;">
                 <span style="color:var(--text-main);font-weight:600;">${r?r.nombre:'Otros'}</span>
-                <span style="color:var(--gasto);font-weight:700;">${fmt(total)}</span>
+                <span style="color:var(--gasto);font-weight:700;">${fmtVista(total)}</span>
             </div>
             <div style="background:var(--border);border-radius:3px;height:5px;">
                 <div style="background:var(--gasto);border-radius:3px;height:5px;width:${pct}%;"></div>
@@ -2977,6 +3060,7 @@ function resetPaginacion() { currentLimitMov = ITEMS_PER_PAGE; }
 function limpiarFiltrosFecha() {
     document.getElementById('filtro-fecha-desde').value = '';
     document.getElementById('filtro-fecha-hasta').value = '';
+    document.getElementById('filtro-busqueda-texto').value = '';
     resetPaginacion(); render();
 }
 
@@ -2986,10 +3070,26 @@ function getTipoMov(m) {
     return rubro ? rubro.tipo : 'gasto';
 }
 
+// ════════════════════════════════════════════════════
+//  AUTOCOMPLETADO DE NOTAS / CONCEPTOS
+// ════════════════════════════════════════════════════
+function actualizarListaNotasUsadas() {
+    const dl = document.getElementById('lista-notas-usadas');
+    if (!dl) return;
+    const vistos = new Set();
+    DB.movimientos.forEach(m => {
+        if (m.notas && m.notas.trim()) vistos.add(m.notas.trim());
+        if (m.concepto && m.concepto.trim()) vistos.add(m.concepto.trim());
+    });
+    const opciones = Array.from(vistos).sort((a, b) => a.localeCompare(b));
+    dl.innerHTML = opciones.map(v => `<option value="${v.replace(/"/g,'&quot;')}"></option>`).join('');
+}
+
 function obtenerFiltrados() {
     const fValor  = document.getElementById('filtro-avanzado').value || 'all';
     const desde   = document.getElementById('filtro-fecha-desde').value || null;
     const hasta   = document.getElementById('filtro-fecha-hasta').value || null;
+    const busq    = (document.getElementById('filtro-busqueda-texto')?.value || '').trim().toLowerCase();
 
     return DB.movimientos.filter(m => {
         const tipo = getTipoMov(m);
@@ -3008,6 +3108,14 @@ function obtenerFiltrados() {
         // Fechas ISO → comparación directa de strings
         if (desde && m.fecha < desde) return false;
         if (hasta && m.fecha > hasta) return false;
+        // Vista de moneda activa (ARS/USD)
+        if ((m.moneda || 'ARS') !== vistaMoneda) return false;
+        // Búsqueda de texto libre en concepto y notas
+        if (busq) {
+            const enConcepto = (m.concepto || '').toLowerCase().includes(busq);
+            const enNotas    = (m.notas || '').toLowerCase().includes(busq);
+            if (!enConcepto && !enNotas) return false;
+        }
         return true;
     });
 }
@@ -3015,12 +3123,14 @@ function obtenerFiltrados() {
 // ════════════════════════════════════════════════════
 //  MÉTRICAS GLOBALES
 // ════════════════════════════════════════════════════
-function calcularMetricas() {
+function calcularMetricas(moneda) {
+    moneda = moneda || 'ARS';
     const saldos = { efectivo: 0, debito1: 0, debito2: 0, debito3: 0 };
     let tIngresos = 0, tGastos = 0;
     const mapaMensual = {};
 
     DB.movimientos.forEach(m => {
+        if ((m.moneda || 'ARS') !== moneda) return;
         const tipo = getTipoMov(m);
         if (tipo === 'ingreso') tIngresos += m.monto;
         else if (tipo === 'gasto') tGastos += m.monto;
@@ -3050,17 +3160,18 @@ function calcularMetricas() {
 //  RENDER
 // ════════════════════════════════════════════════════
 function render() {
-    const metricas     = calcularMetricas();
+    const metricas     = calcularMetricas(vistaMoneda);
     const claveMesVisor= document.getElementById('rubro-mes-visor').value;
     const cuentas      = getCuentas();
+    actualizarListaNotasUsadas();
 
     // ── Header: métricas ──
     const balTotal = metricas.tIngresos - metricas.tGastos;
-    setValColor('view-balance',       fmt(balTotal),                balTotal >= 0);
-    setValColor('view-bal-efectivo',  fmt(metricas.saldos.efectivo), metricas.saldos.efectivo >= 0);
-    setValColor('view-bal-debito1',   fmt(metricas.saldos.debito1),  metricas.saldos.debito1 >= 0);
-    setValColor('view-bal-debito2',   fmt(metricas.saldos.debito2),  metricas.saldos.debito2 >= 0);
-    setValColor('view-bal-debito3',   fmt(metricas.saldos.debito3),  metricas.saldos.debito3 >= 0);
+    setValColor('view-balance',       fmtVista(balTotal),                balTotal >= 0);
+    setValColor('view-bal-efectivo',  fmtVista(metricas.saldos.efectivo), metricas.saldos.efectivo >= 0);
+    setValColor('view-bal-debito1',   fmtVista(metricas.saldos.debito1),  metricas.saldos.debito1 >= 0);
+    setValColor('view-bal-debito2',   fmtVista(metricas.saldos.debito2),  metricas.saldos.debito2 >= 0);
+    setValColor('view-bal-debito3',   fmtVista(metricas.saldos.debito3),  metricas.saldos.debito3 >= 0);
     document.getElementById('label-hdr-debito1').textContent = DB.cuentas.debito1;
     document.getElementById('label-hdr-debito2').textContent = DB.cuentas.debito2;
     document.getElementById('label-hdr-debito3').textContent = DB.cuentas.debito3 || '';
@@ -3074,19 +3185,29 @@ function render() {
     document.getElementById('sep-d2').style.display = hasDeb3 ? '' : 'none';
 
     // ── Header mes actual ──
+    // Los límites de presupuesto son en ARS; en vista USD no aplica comparación de presupuesto.
     let presupTotal = 0;
     const claveMesActual = obtenerClaveMesActual();
-    DB.rubros.filter(r => r.tipo === 'gasto').forEach(r => {
-        presupTotal += getLimiteHistorico(claveMesActual, r.id);
-    });
+    if (vistaMoneda === 'ARS') {
+        DB.rubros.filter(r => r.tipo === 'gasto').forEach(r => {
+            presupTotal += getLimiteHistorico(claveMesActual, r.id);
+        });
+    }
     const gastosMesActual   = metricas.mapaMensual[claveMesActual]?.gastos   || 0;
     const ingresosMesActual = metricas.mapaMensual[claveMesActual]?.ingresos || 0;
     const restante          = presupTotal - gastosMesActual;
-    document.getElementById('view-mes-ingresos').textContent = fmt(ingresosMesActual);
-    document.getElementById('view-mes-gastos').textContent   = fmt(gastosMesActual);
-    document.getElementById('view-budget-general').textContent = fmt(presupTotal);
-    document.getElementById('view-budget-general').style.color = gastosMesActual > presupTotal ? 'var(--gasto)' : 'var(--primary)';
-    setValColor('view-budget-restante', fmt(restante), restante >= 0);
+    document.getElementById('view-mes-ingresos').textContent = fmtVista(ingresosMesActual);
+    document.getElementById('view-mes-gastos').textContent   = fmtVista(gastosMesActual);
+    if (vistaMoneda === 'USD') {
+        document.getElementById('view-budget-general').textContent = '—';
+        document.getElementById('view-budget-general').style.color = 'var(--text-muted)';
+        document.getElementById('view-budget-restante').textContent = '—';
+        document.getElementById('view-budget-restante').style.color = 'var(--text-muted)';
+    } else {
+        document.getElementById('view-budget-general').textContent = fmtVista(presupTotal);
+        document.getElementById('view-budget-general').style.color = gastosMesActual > presupTotal ? 'var(--gasto)' : 'var(--primary)';
+        setValColor('view-budget-restante', fmtVista(restante), restante >= 0);
+    }
 
     // ── Selects de cuentas ──
     const optsHTML = cuentas.map(c => `<option value="${c.key}">${c.icon} ${c.label}</option>`).join('');
@@ -3180,7 +3301,7 @@ function render() {
     });
 
     const totalEl = document.getElementById('live-total-unico');
-    totalEl.textContent = fmt(Math.abs(suma));
+    totalEl.textContent = fmtVista(Math.abs(suma));
     totalEl.style.color = fValorActivo === 'gasto' ? 'var(--gasto)' : fValorActivo === 'ingreso' ? 'var(--ingreso)' : suma >= 0 ? 'var(--ingreso)' : 'var(--gasto)';
     document.getElementById('live-count-label').textContent = `${filtrados.length} asiento${filtrados.length !== 1 ? 's' : ''}`;
 
@@ -3211,7 +3332,7 @@ function render() {
                     </div>
                 </div>
                 <div class="mov-row-right">
-                    <span class="mov-amount" style="color:var(--${tipo === 'transferencia' ? 'transferencia' : tipo})">${signo}${fmt(m.monto)}</span>
+                    <span class="mov-amount" style="color:var(--${tipo === 'transferencia' ? 'transferencia' : tipo})">${signo}${fmtVista(m.monto)}</span>
                     <button class="btn-icon" data-edit-mov="${m.id}" title="Editar">✏️</button>
                     <button class="btn-icon danger" data-del="${m.id}" title="Eliminar">🗑️</button>
                 </div>`;
@@ -3245,7 +3366,7 @@ function render() {
         let totalPresup = 0;
 
         DB.rubros.filter(r => r.tipo === 'gasto').forEach(r => {
-            const lim = getLimiteHistorico(clave, r.id);
+            const lim = vistaMoneda === 'ARS' ? getLimiteHistorico(clave, r.id) : 0;
             if (lim > 0) {
                 totalPresup += lim;
                 const gastado = datos.desgloseRubros[r.id] || 0;
@@ -3255,10 +3376,27 @@ function render() {
                     <div class="budget-row-report">
                         <div style="display:flex; justify-content:space-between; font-size:10px; font-weight:700;">
                             <span style="color:var(--text-label)">${r.nombre}</span>
-                            <span style="color:${pct >= 100 ? 'var(--gasto)' : 'var(--text-main)'}">${fmt(gastado)} / ${fmt(lim)}</span>
+                            <span style="color:${pct >= 100 ? 'var(--gasto)' : 'var(--text-main)'}">${fmtVista(gastado)} / ${fmtVista(lim)}</span>
                         </div>
                         <div class="budget-bar-bg"><div class="budget-bar-fill" style="width:${pct}%; background:${color};"></div></div>
                     </div>`;
+            } else {
+                // Carry-forward: sin límite configurado — usar el gasto real del mes anterior como referencia
+                const claveAnt = claveMesAnterior(clave);
+                const gastadoAnt  = metricas.mapaMensual[claveAnt]?.desgloseRubros[r.id] || 0;
+                const gastadoMes  = datos.desgloseRubros[r.id] || 0;
+                if (gastadoAnt > 0 || gastadoMes > 0) {
+                    const refBase = gastadoAnt > 0 ? gastadoAnt : gastadoMes;
+                    const pctRef  = refBase > 0 ? Math.min((gastadoMes / refBase) * 100, 100) : 0;
+                    htmlBudgets += `
+                        <div class="budget-row-report" style="opacity:.75;">
+                            <div style="display:flex; justify-content:space-between; font-size:10px; font-weight:700;">
+                                <span style="color:var(--text-muted)">${r.nombre} <span style="font-weight:400;">(sin límite)</span></span>
+                                <span style="color:var(--text-muted)">${fmtVista(gastadoMes)} <span style="font-weight:400;">· mes ant.: ${fmtVista(gastadoAnt)}</span></span>
+                            </div>
+                            <div class="budget-bar-bg"><div class="budget-bar-fill" style="width:${pctRef}%; background:var(--text-muted); background-image:repeating-linear-gradient(45deg,transparent,transparent 3px,rgba(255,255,255,.3) 3px,rgba(255,255,255,.3) 6px);"></div></div>
+                        </div>`;
+                }
             }
         });
 
@@ -3272,12 +3410,12 @@ function render() {
                 <span>${datos.etiqueta}</span>
                 ${esMes ? '<span style="font-size:9px; font-weight:700; color:var(--primary); background:var(--primary-light); padding:1px 5px; border-radius:3px;">MES ACTUAL</span>' : ''}
             </div>
-            <div class="month-data"><span style="color:var(--text-muted)">Presupuesto total</span><span style="color:var(--primary); font-weight:700;">${fmt(totalPresup)}</span></div>
-            <div class="month-data"><span style="color:var(--text-muted)">Gastos realizados</span><span style="color:var(--gasto); font-weight:700;">−${fmt(datos.gastos)}</span></div>
-            <div class="month-data"><span style="color:var(--text-muted)">Ingresos</span><span style="color:var(--ingreso); font-weight:700;">+${fmt(datos.ingresos)}</span></div>
+            <div class="month-data"><span style="color:var(--text-muted)">Presupuesto total</span><span style="color:var(--primary); font-weight:700;">${fmtVista(totalPresup)}</span></div>
+            <div class="month-data"><span style="color:var(--text-muted)">Gastos realizados</span><span style="color:var(--gasto); font-weight:700;">−${fmtVista(datos.gastos)}</span></div>
+            <div class="month-data"><span style="color:var(--text-muted)">Ingresos</span><span style="color:var(--ingreso); font-weight:700;">+${fmtVista(datos.ingresos)}</span></div>
             <div style="border-top:1px solid var(--border); margin-top:5px; padding-top:5px; display:flex; justify-content:space-between; font-size:11px; font-weight:800;">
                 <span>Neto (I−G)</span>
-                <span style="color:${neto >= 0 ? 'var(--ingreso)' : 'var(--gasto)'}">${neto >= 0 ? '+' : ''}${fmt(neto)}</span>
+                <span style="color:${neto >= 0 ? 'var(--ingreso)' : 'var(--gasto)'}">${neto >= 0 ? '+' : ''}${fmtVista(neto)}</span>
             </div>
             ${htmlBudgets ? `<div style="margin-top:6px; border-top:1px dashed var(--border); padding-top:4px;">${htmlBudgets}</div>` : ''}
         `;
@@ -3405,6 +3543,11 @@ window.addEventListener('DOMContentLoaded', function() {
     document.getElementById('filtro-avanzado').addEventListener('change', () => { resetPaginacion(); render(); });
     document.getElementById('filtro-fecha-desde').addEventListener('change', () => { resetPaginacion(); render(); });
     document.getElementById('filtro-fecha-hasta').addEventListener('change', () => { resetPaginacion(); render(); });
+    let _debounceBusqueda;
+    document.getElementById('filtro-busqueda-texto').addEventListener('input', () => {
+        clearTimeout(_debounceBusqueda);
+        _debounceBusqueda = setTimeout(() => { resetPaginacion(); render(); }, 250);
+    });
     document.getElementById('rubro-mes-visor').addEventListener('change', render);
 
     // Atajo teclado: Enter en formulario
