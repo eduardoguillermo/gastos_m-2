@@ -364,7 +364,7 @@
 <!-- SPLASH -->
 <div id="splash">
     <div class="splash-logo" id="splash-logo">Finanzas<span>Pr<span id="splash-o">o</span></span><span id="splash-mariela">especial <span id="splash-para">para</span> Mariela</span></div>
-    <div class="splash-version" style="display:flex;align-items:baseline;gap:8px;justify-content:center;">v13.80-dev2 · Ledger Edition (DEV)</div>
+    <div class="splash-version" style="display:flex;align-items:baseline;gap:8px;justify-content:center;">v13.81-dev2 · Ledger Edition (DEV)</div>
     <div style="position:absolute;bottom:18%;right:8%;font-family:'Dancing Script',cursive;font-size:32px;color:#93c5fd;pointer-events:none">Development by Guille</div>
     <div class="splash-progress-track">
         <div class="splash-progress-bar" id="splash-bar"></div>
@@ -429,7 +429,7 @@
             <span class="hdr-version" id="hdr-version">${APP_VERSION}</span>
             <span style="background:#dc2626;color:white;font-size:10px;font-weight:800;padding:2px 8px;border-radius:4px;letter-spacing:.5px;margin-left:2px;">DEV</span>
             <div class="vista-moneda-switch">
-                <button id="btn-vista-ars" class="vista-moneda-btn vista-moneda-activa" onclick="cambiarVistaMoneda('ARS')">ARS</button>
+                <button id="btn-vista-ars" class="vista-moneda-btn vista-moneda-activa" onclick="cambiarVistaMoneda('UYU')">$U</button>
                 <button id="btn-vista-usd" class="vista-moneda-btn" onclick="cambiarVistaMoneda('USD')">USD</button>
             </div>
             <span style="font-family:'Dancing Script',cursive;font-size:13px;color:#1e40af;margin-left:6px;white-space:nowrap">Development by Guille</span>
@@ -500,7 +500,7 @@
                         <div class="form-group" style="width:72px;">
                             <label for="mov-moneda">Moneda</label>
                             <select id="mov-moneda">
-                                <option value="ARS">ARS</option>
+                                <option value="UYU">$U</option>
                                 <option value="USD">USD</option>
                             </select>
                         </div>
@@ -726,20 +726,20 @@
 // ════════════════════════════════════════════════════
 //  CONSTANTES Y ESTADO GLOBAL
 // ════════════════════════════════════════════════════
-const APP_VERSION = '13.80-dev2';
+const APP_VERSION = '13.81-dev2';
 const DEV_MODE = true; // gastos_m-2: entorno de desarrollo aislado de producción
 
-let vistaMoneda = 'ARS';
+let vistaMoneda = 'UYU';
 function fmtVista(v) {
     if (vistaMoneda === 'USD') return 'US$' + Number(v).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-    return fmt(v);
+    return '$U ' + Number(v).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 }
 function cambiarVistaMoneda(m) {
     vistaMoneda = m;
     const bArs = document.getElementById('btn-vista-ars');
     const bUsd = document.getElementById('btn-vista-usd');
     if (bArs && bUsd) {
-        bArs.classList.toggle('vista-moneda-activa', m === 'ARS');
+        bArs.classList.toggle('vista-moneda-activa', m === 'UYU');
         bUsd.classList.toggle('vista-moneda-activa', m === 'USD');
     }
     const movMonedaEl = document.getElementById('mov-moneda');
@@ -1332,7 +1332,7 @@ function gmExportarLibroDiarioXLSX() {
         const cuenta = DB.cuentas[m.origen] || m.origen || '-';
         rows.push([
             m.fecha, m.concepto, getTipoMov(m),
-            rubro?rubro.nombre:'-', cuenta, m.moneda || 'ARS',
+            rubro?rubro.nombre:'-', cuenta, m.moneda || 'UYU',
             parseFloat(m.monto)||0, m.notas||''
         ]);
     });
@@ -2509,7 +2509,7 @@ function guardarMovimiento() {
     if (!ok) { toast('Completá los campos requeridos.', 'error'); return; }
 
     const fecha = fechaEl.value || hoyISO();
-    const moneda = document.getElementById('mov-moneda')?.value || 'ARS';
+    const moneda = document.getElementById('mov-moneda')?.value || 'UYU';
 
     if (flujo === 'transferencia') {
         const origen  = document.getElementById('mov-transf-origen').value;
@@ -2654,7 +2654,7 @@ function editarMovimiento(id) {
     document.getElementById('mov-monto').value    = m.monto || '';
     document.getElementById('mov-fecha').value    = m.fecha || hoyISO();
     const monedaEl = document.getElementById('mov-moneda');
-    if (monedaEl) monedaEl.value = m.moneda || 'ARS';
+    if (monedaEl) monedaEl.value = m.moneda || 'UYU';
     const notasEl = document.getElementById('mov-notas');
     if(notasEl) notasEl.value = m.notas || '';
     if (m.rubroId && document.getElementById('mov-rubro')) {
@@ -2698,7 +2698,7 @@ function renderTop5Rubros() {
     if (!el) return;
     const mesActual = hoyISO().slice(0,7);
     const gastosPorRubro = {};
-    DB.movimientos.filter(m => m.tipo === 'gasto' && claveMesDeISO(m.fecha) === mesActual && (m.moneda||'ARS') === vistaMoneda).forEach(m => {
+    DB.movimientos.filter(m => m.tipo === 'gasto' && claveMesDeISO(m.fecha) === mesActual && (m.moneda||'UYU') === vistaMoneda).forEach(m => {
         gastosPorRubro[m.rubroId] = (gastosPorRubro[m.rubroId]||0) + (parseFloat(m.monto)||0);
     });
     const top = Object.entries(gastosPorRubro).sort((a,b)=>b[1]-a[1]).slice(0,5);
@@ -3109,7 +3109,7 @@ function obtenerFiltrados() {
         if (desde && m.fecha < desde) return false;
         if (hasta && m.fecha > hasta) return false;
         // Vista de moneda activa (ARS/USD)
-        if ((m.moneda || 'ARS') !== vistaMoneda) return false;
+        if ((m.moneda || 'UYU') !== vistaMoneda) return false;
         // Búsqueda de texto libre en concepto y notas
         if (busq) {
             const enConcepto = (m.concepto || '').toLowerCase().includes(busq);
@@ -3124,13 +3124,13 @@ function obtenerFiltrados() {
 //  MÉTRICAS GLOBALES
 // ════════════════════════════════════════════════════
 function calcularMetricas(moneda) {
-    moneda = moneda || 'ARS';
+    moneda = moneda || 'UYU';
     const saldos = { efectivo: 0, debito1: 0, debito2: 0, debito3: 0 };
     let tIngresos = 0, tGastos = 0;
     const mapaMensual = {};
 
     DB.movimientos.forEach(m => {
-        if ((m.moneda || 'ARS') !== moneda) return;
+        if ((m.moneda || 'UYU') !== moneda) return;
         const tipo = getTipoMov(m);
         if (tipo === 'ingreso') tIngresos += m.monto;
         else if (tipo === 'gasto') tGastos += m.monto;
@@ -3188,7 +3188,7 @@ function render() {
     // Los límites de presupuesto son en ARS; en vista USD no aplica comparación de presupuesto.
     let presupTotal = 0;
     const claveMesActual = obtenerClaveMesActual();
-    if (vistaMoneda === 'ARS') {
+    if (vistaMoneda === 'UYU') {
         DB.rubros.filter(r => r.tipo === 'gasto').forEach(r => {
             presupTotal += getLimiteHistorico(claveMesActual, r.id);
         });
@@ -3366,7 +3366,7 @@ function render() {
         let totalPresup = 0;
 
         DB.rubros.filter(r => r.tipo === 'gasto').forEach(r => {
-            const lim = vistaMoneda === 'ARS' ? getLimiteHistorico(clave, r.id) : 0;
+            const lim = vistaMoneda === 'UYU' ? getLimiteHistorico(clave, r.id) : 0;
             if (lim > 0) {
                 totalPresup += lim;
                 const gastado = datos.desgloseRubros[r.id] || 0;
