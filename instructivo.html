@@ -262,7 +262,7 @@
   <a href="#presupuesto">📈 Presupuesto</a>
 
   <div class="section-label">Módulos adicionales</div>
-  <a href="#monedas">💵 ARS / USD</a>
+  <a href="#monedas">💵 $U / USD</a>
   <a href="#vencimientos">⚠️ Próximos vencimientos</a>
   <a href="#recurrentes">🔁 Recurrentes</a>
   <a href="#torta">🥧 Gastos por rubro</a>
@@ -343,7 +343,7 @@
     </div>
     <div class="steps">
       <div class="step"><div class="step-num"></div><div class="step-body">Elegí el <b>tipo de operación</b>: Gasto/Ingreso o Transferencia entre cuentas.</div></div>
-      <div class="step"><div class="step-num"></div><div class="step-body">Completá <b>Concepto</b>, <b>Monto</b>, <b>Moneda</b> (ARS/USD) y <b>Fecha</b>.</div></div>
+      <div class="step"><div class="step-num"></div><div class="step-body">Completá <b>Concepto</b>, <b>Monto</b>, <b>Moneda</b> ($U/USD) y <b>Fecha</b>.</div></div>
       <div class="step"><div class="step-num"></div><div class="step-body">Si es Gasto/Ingreso, elegí el <b>rubro</b> (o usá los chips de rubros rápidos) y la <b>cuenta impactada</b>.</div></div>
       <div class="step"><div class="step-num"></div><div class="step-body">Si es Transferencia, elegí cuenta <b>origen</b> (resta) y <b>destino</b> (suma).</div></div>
       <div class="step"><div class="step-num"></div><div class="step-body">Agregá una <b>nota</b> opcional y tocá <b>✓ Asentar registro</b>.</div></div>
@@ -431,13 +431,13 @@
     <div class="section-header">
       <span class="section-icon">💵</span>
       <div>
-        <div class="section-title">ARS / USD</div>
+        <div class="section-title">$U / USD</div>
         <div class="section-subtitle">Ver la app en pesos o en dólares</div>
       </div>
     </div>
-    <p>El switch <b>ARS | USD</b> en el header cambia la moneda de todo lo que ves: dashboard, tenencias, libro diario, Top 5 y reporte mensual. Cada movimiento se guarda con su propia moneda.</p>
+    <p>El switch <b>$U | USD</b> en el header cambia la moneda de todo lo que ves: dashboard, tenencias, libro diario, Top 5 y reporte mensual. Cada movimiento se guarda con su propia moneda.</p>
     <div class="tip">💡 Al cargar un movimiento, el campo Moneda toma por defecto la vista activa (si estás viendo USD, el nuevo movimiento arranca en USD).</div>
-    <div class="warning">⚠️ Los límites de presupuesto por rubro son en pesos. En vista USD, "Presup" y "Restan" se muestran como "—" porque no aplica comparar un límite en ARS contra gasto en USD.</div>
+    <div class="warning">⚠️ Los límites de presupuesto por rubro son en pesos uruguayos. En vista USD, "Presup" y "Restan" se muestran como "—" porque no aplica comparar un límite en $U contra gasto en USD.</div>
     <p>Las cuentas (Efectivo, Banco 1, 2, 3) son las mismas en ambas vistas — cada una simplemente muestra su saldo en la moneda seleccionada, calculado solo con los movimientos de esa moneda.</p>
   </section>
 
@@ -586,8 +586,8 @@ console.log(gToken ? 'Token activo' : 'Sin token')</pre>
     <div class="changelog-entry">
       <div class="changelog-version"><span class="v-num">v13.80-dev2</span><span class="changelog-tag tag-feature">feature</span></div>
       <ul class="changelog-list">
-        <li>Toggle ARS/USD en el header: recalcula dashboard, tenencias, libro diario, Top 5 y reporte mensual según la moneda seleccionada</li>
-        <li>Nuevo campo Moneda en cada movimiento (ARS/USD)</li>
+        <li>Toggle $U/USD en el header: recalcula dashboard, tenencias, libro diario, Top 5 y reporte mensual según la moneda seleccionada</li>
+        <li>Nuevo campo Moneda en cada movimiento ($U/USD)</li>
         <li>Carry-forward en el reporte de presupuesto: rubros sin límite muestran el gasto del mes anterior como referencia (barra punteada)</li>
         <li>Buscador de texto libre en el libro diario (concepto/notas) con autocompletado</li>
         <li>Autocompletado de notas usadas anteriormente al cargar un movimiento</li>
