@@ -262,6 +262,8 @@
   <a href="#presupuesto">📈 Presupuesto</a>
 
   <div class="section-label">Módulos adicionales</div>
+  <a href="#monedas">💵 ARS / USD</a>
+  <a href="#vencimientos">⚠️ Próximos vencimientos</a>
   <a href="#recurrentes">🔁 Recurrentes</a>
   <a href="#torta">🥧 Gastos por rubro</a>
   <a href="#ahorros">💰 Ahorros</a>
@@ -341,12 +343,13 @@
     </div>
     <div class="steps">
       <div class="step"><div class="step-num"></div><div class="step-body">Elegí el <b>tipo de operación</b>: Gasto/Ingreso o Transferencia entre cuentas.</div></div>
-      <div class="step"><div class="step-num"></div><div class="step-body">Completá <b>Concepto</b>, <b>Monto</b> y <b>Fecha</b>.</div></div>
+      <div class="step"><div class="step-num"></div><div class="step-body">Completá <b>Concepto</b>, <b>Monto</b>, <b>Moneda</b> (ARS/USD) y <b>Fecha</b>.</div></div>
       <div class="step"><div class="step-num"></div><div class="step-body">Si es Gasto/Ingreso, elegí el <b>rubro</b> (o usá los chips de rubros rápidos) y la <b>cuenta impactada</b>.</div></div>
       <div class="step"><div class="step-num"></div><div class="step-body">Si es Transferencia, elegí cuenta <b>origen</b> (resta) y <b>destino</b> (suma).</div></div>
       <div class="step"><div class="step-num"></div><div class="step-body">Agregá una <b>nota</b> opcional y tocá <b>✓ Asentar registro</b>.</div></div>
     </div>
     <div class="tip">💡 Los chips de rubros rápidos muestran tus categorías más usadas para no tener que abrir el select cada vez.</div>
+    <div class="tip">💡 El campo Notas autocompleta con notas y conceptos usados antes — empezá a tipear y elegí de la lista.</div>
   </section>
 
   <!-- RUBROS -->
@@ -401,8 +404,12 @@
       </div>
     </div>
     <p>Filtrá por rango de <b>fechas</b> o por texto/rubro con el selector avanzado. El contador inferior muestra la cantidad de asientos y el total filtrado.</p>
+    <h2>Buscador de texto</h2>
+    <p>El campo <b>Buscar</b> filtra por concepto o nota, con autocompletado de términos ya usados. Se combina con los filtros de fecha y rubro.</p>
     <h2>Impresión / PDF</h2>
     <p>El botón 🖨️ genera una vista de impresión del libro diario tal como está filtrado en pantalla.</p>
+    <h2>Exportar a Excel</h2>
+    <p>El botón 📊 exporta exactamente lo que ves filtrado en pantalla (fechas, búsqueda, rubro) a una planilla <code>.xlsx</code>.</p>
   </section>
 
   <!-- PRESUPUESTO -->
@@ -415,6 +422,45 @@
       </div>
     </div>
     <p>Muestra el <b>Top 5 de gastos</b> del mes por rubro y, debajo, el detalle de ejecución de cada rubro con límite configurado.</p>
+    <h2>Rubros sin límite (referencia del mes anterior)</h2>
+    <p>Si un rubro nunca tuvo límite configurado pero tuvo gasto, aparece igual en el reporte con una barra punteada, comparando el gasto de este mes contra el del mes anterior — a modo de referencia, sin contar como presupuesto formal.</p>
+  </section>
+
+  <!-- MONEDAS -->
+  <section class="section" id="monedas">
+    <div class="section-header">
+      <span class="section-icon">💵</span>
+      <div>
+        <div class="section-title">ARS / USD</div>
+        <div class="section-subtitle">Ver la app en pesos o en dólares</div>
+      </div>
+    </div>
+    <p>El switch <b>ARS | USD</b> en el header cambia la moneda de todo lo que ves: dashboard, tenencias, libro diario, Top 5 y reporte mensual. Cada movimiento se guarda con su propia moneda.</p>
+    <div class="tip">💡 Al cargar un movimiento, el campo Moneda toma por defecto la vista activa (si estás viendo USD, el nuevo movimiento arranca en USD).</div>
+    <div class="warning">⚠️ Los límites de presupuesto por rubro son en pesos. En vista USD, "Presup" y "Restan" se muestran como "—" porque no aplica comparar un límite en ARS contra gasto en USD.</div>
+    <p>Las cuentas (Efectivo, Banco 1, 2, 3) son las mismas en ambas vistas — cada una simplemente muestra su saldo en la moneda seleccionada, calculado solo con los movimientos de esa moneda.</p>
+  </section>
+
+  <!-- VENCIMIENTOS -->
+  <section class="section" id="vencimientos">
+    <div class="section-header">
+      <span class="section-icon">⚠️</span>
+      <div>
+        <div class="section-title">Próximos vencimientos</div>
+        <div class="section-subtitle">Alerta automática al abrir la app</div>
+      </div>
+    </div>
+    <p>Si hay <b>servicios fijos</b> o <b>cuotas</b> por vencer en los próximos días hábiles (o ya vencidos sin pagar), aparece un modal automático al cargar la app.</p>
+    <table>
+      <thead><tr><th>Color</th><th>Significa</th></tr></thead>
+      <tbody>
+        <tr><td>🩷 Fucsia intenso</td><td>Servicio fijo — vence hoy o en ≤2 días</td></tr>
+        <tr><td>🩷 Fucsia suave</td><td>Servicio fijo — vence en más días</td></tr>
+        <tr><td>💜 Violeta</td><td>Cuota de compra en curso</td></tr>
+        <tr><td>🔴 Rojo</td><td>Deuda vencida del mes anterior, sin pagar</td></tr>
+      </tbody>
+    </table>
+    <p>Podés pagar directo desde el modal con el botón <b>Pagar</b>, sin ir a la pestaña Fijos.</p>
   </section>
 
   <!-- RECURRENTES -->
@@ -535,6 +581,22 @@ console.log(gToken ? 'Token activo' : 'Sin token')</pre>
         <div class="section-title">Historial de cambios</div>
         <div class="section-subtitle">Registro de versiones — de más reciente a más antigua</div>
       </div>
+    </div>
+
+    <div class="changelog-entry">
+      <div class="changelog-version"><span class="v-num">v13.80-dev2</span><span class="changelog-tag tag-feature">feature</span></div>
+      <ul class="changelog-list">
+        <li>Toggle ARS/USD en el header: recalcula dashboard, tenencias, libro diario, Top 5 y reporte mensual según la moneda seleccionada</li>
+        <li>Nuevo campo Moneda en cada movimiento (ARS/USD)</li>
+        <li>Carry-forward en el reporte de presupuesto: rubros sin límite muestran el gasto del mes anterior como referencia (barra punteada)</li>
+        <li>Buscador de texto libre en el libro diario (concepto/notas) con autocompletado</li>
+        <li>Autocompletado de notas usadas anteriormente al cargar un movimiento</li>
+        <li>Exportar a Excel directo desde el libro diario, respetando los filtros activos</li>
+        <li>Modal de próximos vencimientos retemado: fucsia para servicios fijos, violeta para cuotas, rojo para deuda vencida de mes anterior</li>
+        <li>Footer reorganizado en grupos (Backup | Vistas | Salir) con separadores visuales</li>
+        <li>Nombres editables con doble clic en Rubros y Fijos</li>
+        <li>Entorno de desarrollo separado: repo <code>gastos_m-2</code>, namespace <code>gmdev2_</code>, Drive desactivado</li>
+      </ul>
     </div>
 
     <div class="changelog-entry">
