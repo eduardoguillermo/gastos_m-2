@@ -510,7 +510,8 @@
         <div class="section-subtitle">Consulta de meses cerrados</div>
       </div>
     </div>
-    <p>Filtrá por <b>tipo</b> de movimiento y <b>rubro</b> para revisar cualquier mes anterior. El botón <b>📊 Exportar Excel</b> descarga el detalle completo del historial a una planilla.</p>
+    <p>Filtrá por <b>moneda ($U/USD)</b>, <b>tipo</b> de movimiento y <b>rubro</b> para revisar cualquier mes anterior. Los totales de ingresos, gastos y balance se calculan solo con la moneda seleccionada — nunca se mezclan $U y USD en una misma suma. El botón <b>📊 Exportar Excel</b> descarga el detalle filtrado, incluida la columna Moneda.</p>
+    <div class="tip">💡 El filtro de moneda arranca con la misma vista que tengas activa en el header ($U o USD). Cambialo ahí adentro para ver el otro historial.</div>
   </section>
 
   <!-- BACKUP -->
@@ -581,6 +582,14 @@ console.log(gToken ? 'Token activo' : 'Sin token')</pre>
         <div class="section-title">Historial de cambios</div>
         <div class="section-subtitle">Registro de versiones — de más reciente a más antigua</div>
       </div>
+    </div>
+
+    <div class="changelog-entry">
+      <div class="changelog-version"><span class="v-num">v13.83-dev2</span><span class="changelog-tag tag-fix">fix</span></div>
+      <ul class="changelog-list">
+        <li>Historial mensual: agregado filtro de moneda ($U/USD) — antes mezclaba montos de ambas monedas en la misma suma</li>
+        <li>Exportar Excel del Historial ahora respeta el filtro de moneda e incluye la columna Moneda</li>
+      </ul>
     </div>
 
     <div class="changelog-entry">
