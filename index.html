@@ -364,7 +364,7 @@
 <!-- SPLASH -->
 <div id="splash">
     <div class="splash-logo" id="splash-logo">Finanzas<span>Pr<span id="splash-o">o</span></span><span id="splash-mariela">especial <span id="splash-para">para</span> Mariela</span></div>
-    <div class="splash-version" style="display:flex;align-items:baseline;gap:8px;justify-content:center;">v13.85-dev2 · Ledger Edition (DEV)</div>
+    <div class="splash-version" style="display:flex;align-items:baseline;gap:8px;justify-content:center;">v13.86-dev2 · Ledger Edition (DEV)</div>
     <div style="position:absolute;bottom:18%;right:8%;font-family:'Dancing Script',cursive;font-size:32px;color:#93c5fd;pointer-events:none">Development by Guille</div>
     <div class="splash-progress-track">
         <div class="splash-progress-bar" id="splash-bar"></div>
@@ -726,7 +726,7 @@
 // ════════════════════════════════════════════════════
 //  CONSTANTES Y ESTADO GLOBAL
 // ════════════════════════════════════════════════════
-const APP_VERSION = '13.85-dev2';
+const APP_VERSION = '13.86-dev2';
 const DEV_MODE = true; // gastos_m-2: entorno de desarrollo aislado de producción
 
 let vistaMoneda = 'UYU';
@@ -844,7 +844,7 @@ function gmDriveSubir() {
     if (DEV_MODE) { toast('☁️ Drive desactivado en entorno de desarrollo', 'error'); return; }
     gmGetToken(token => {
         const ahora = new Date();
-        const ts = ahora.toISOString().slice(0,16).replace(/[:T]/g,'-');
+        const ts = `${ahora.getFullYear()}-${String(ahora.getMonth()+1).padStart(2,'0')}-${String(ahora.getDate()).padStart(2,'0')}-${String(ahora.getHours()).padStart(2,'0')}-${String(ahora.getMinutes()).padStart(2,'0')}`;
         const nombre = `finanzaspro_backup_${ts}.json`;
         const data = JSON.stringify(DB, null, 2);
         const meta = JSON.stringify({name: nombre, parents: ['appDataFolder']});
@@ -1018,7 +1018,7 @@ async function gmSalir() {
     if (tieneToken) {
         try {
             const ahora  = new Date();
-            const ts     = ahora.toISOString().slice(0,16).replace(/[:T]/g,'-');
+            const ts     = `${ahora.getFullYear()}-${String(ahora.getMonth()+1).padStart(2,'0')}-${String(ahora.getDate()).padStart(2,'0')}-${String(ahora.getHours()).padStart(2,'0')}-${String(ahora.getMinutes()).padStart(2,'0')}`;
             const nombre = `finanzaspro_backup_${ts}.json`;
             const data   = JSON.stringify(DB, null, 2);
             const meta   = JSON.stringify({name: nombre, parents: ['appDataFolder']});
@@ -1247,6 +1247,13 @@ function hoyISO() {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
+// Helpers de fecha LOCAL (nunca UTC) — usar siempre en vez de d.toISOString()
+function fechaISOLocal(d) {
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function mesISOLocal(d) {
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+}
 function fechaDisplay(iso) {
     if (!iso) return '';
     const [y, m, d] = iso.split('-');
@@ -1394,7 +1401,7 @@ function gmAbrirTortas() {
     const mesActual = hoyISO().slice(0, 7);
     const hace12 = (() => {
         const d = new Date(); d.setMonth(d.getMonth() - 11); d.setDate(1);
-        return d.toISOString().slice(0, 7);
+        return mesISOLocal(d);
     })();
 
     function gastosPorRubro(movs) {
@@ -1643,7 +1650,7 @@ function gmMesVenc(dia, hoy, mesActual) {
         var d = new Date(hoy + 'T00:00:00');
         d.setDate(1);
         d.setMonth(d.getMonth() + 1);
-        return d.toISOString().slice(0,7);
+        return mesISOLocal(d);
     }
     return mesActual;
 }
@@ -1664,7 +1671,7 @@ function gmProxVenc(dia, hoy) {
     var d = new Date(hoy + 'T00:00:00');
     d.setDate(1);
     d.setMonth(d.getMonth() + 1);
-    return d.toISOString().slice(0,7) + '-' + String(dia).padStart(2,'0');
+    return mesISOLocal(d) + '-' + String(dia).padStart(2,'0');
 }
 
 function gmRenderServicios() {
@@ -2009,7 +2016,7 @@ function gmDiasHabilesDesde(fechaISO, n) {
     while (dias.length < n) {
         d.setDate(d.getDate() + 1);
         var dow = d.getDay();
-        if (dow !== 0 && dow !== 6) dias.push(d.toISOString().slice(0,10));
+        if (dow !== 0 && dow !== 6) dias.push(fechaISOLocal(d));
     }
     return dias;
 }
@@ -2022,7 +2029,7 @@ function gmMostrarVencimientos() {
     var dMesAnt = new Date(hoy + 'T12:00:00');
     dMesAnt.setDate(1);
     dMesAnt.setMonth(dMesAnt.getMonth() - 1);
-    var mesAnterior = dMesAnt.toISOString().slice(0,7);
+    var mesAnterior = mesISOLocal(dMesAnt);
 
     var items = [];
 
@@ -3114,7 +3121,7 @@ async function guardarEnCarpeta() {
         } else if (perm !== 'granted') {
             return false;
         }
-        const hoy    = new Date().toISOString().slice(0,10);
+        const hoy    = hoyISO();
         const nombre = `finanzaspro_backup_${hoy}.json`;
 
         // Escribir backup de hoy
@@ -3149,7 +3156,7 @@ async function guardarEnCarpeta() {
 
 function exportarBackup() {
     const ahora  = new Date();
-    const sello  = ahora.toISOString().slice(0,19).replace(/[:T]/g, '-');
+    const sello  = `${ahora.getFullYear()}-${String(ahora.getMonth()+1).padStart(2,'0')}-${String(ahora.getDate()).padStart(2,'0')}-${String(ahora.getHours()).padStart(2,'0')}-${String(ahora.getMinutes()).padStart(2,'0')}-${String(ahora.getSeconds()).padStart(2,'0')}`;
     const blob   = new Blob([JSON.stringify(DB, null, 2)], { type: 'application/json' });
     const url    = URL.createObjectURL(blob);
     const a      = document.createElement('a');
