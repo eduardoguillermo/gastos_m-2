@@ -364,7 +364,7 @@
 <!-- SPLASH -->
 <div id="splash">
     <div class="splash-logo" id="splash-logo">Finanzas<span>Pr<span id="splash-o">o</span></span><span id="splash-mariela">especial <span id="splash-para">para</span> Mariela</span></div>
-    <div class="splash-version" style="display:flex;align-items:baseline;gap:8px;justify-content:center;">v13.82-dev2 · Ledger Edition (DEV)</div>
+    <div class="splash-version" style="display:flex;align-items:baseline;gap:8px;justify-content:center;">v13.83-dev2 · Ledger Edition (DEV)</div>
     <div style="position:absolute;bottom:18%;right:8%;font-family:'Dancing Script',cursive;font-size:32px;color:#93c5fd;pointer-events:none">Development by Guille</div>
     <div class="splash-progress-track">
         <div class="splash-progress-bar" id="splash-bar"></div>
@@ -726,7 +726,7 @@
 // ════════════════════════════════════════════════════
 //  CONSTANTES Y ESTADO GLOBAL
 // ════════════════════════════════════════════════════
-const APP_VERSION = '13.82-dev2';
+const APP_VERSION = '13.83-dev2';
 const DEV_MODE = true; // gastos_m-2: entorno de desarrollo aislado de producción
 
 let vistaMoneda = 'UYU';
@@ -1354,9 +1354,11 @@ function gmExportarHistorialXLSX() {
     const fMontoMin= parseFloat(document.getElementById('hist-f-monto-min')?.value) || 0;
     const fMontoMax= parseFloat(document.getElementById('hist-f-monto-max')?.value) || Infinity;
     const fTexto   = (document.getElementById('hist-f-texto')?.value || '').toLowerCase().trim();
+    const fMoneda  = document.getElementById('hist-f-moneda')?.value || 'UYU';
 
     const movsFiltrados = DB.movimientos.filter(m => {
         if (!m.fecha) return false;
+        if ((m.moneda || 'UYU') !== fMoneda) return false;
         const tipoMov = getTipoMov(m);
         if (fTipo && tipoMov !== fTipo) return false;
         if (fRubroId && m.rubroId !== fRubroId) return false;
@@ -1366,20 +1368,20 @@ function gmExportarHistorialXLSX() {
         return true;
     });
 
-    const rows = [['Fecha','Concepto','Tipo','Rubro','Cuenta','Monto','Notas']];
+    const rows = [['Fecha','Concepto','Tipo','Rubro','Cuenta','Moneda','Monto','Notas']];
     movsFiltrados.sort((a,b)=>a.fecha>b.fecha?-1:1).forEach(m => {
         const rubro = DB.rubros.find(r=>r.id===m.rubroId);
         const cuenta = DB.cuentas[m.origen] || m.origen || '-';
         rows.push([
             m.fecha, m.concepto, getTipoMov(m),
-            rubro?rubro.nombre:'-', cuenta,
+            rubro?rubro.nombre:'-', cuenta, m.moneda || 'UYU',
             parseFloat(m.monto)||0, m.notas||''
         ]);
     });
 
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.aoa_to_sheet(rows);
-    ws['!cols'] = [{wch:12},{wch:30},{wch:10},{wch:18},{wch:15},{wch:12},{wch:25}];
+    ws['!cols'] = [{wch:12},{wch:30},{wch:10},{wch:18},{wch:15},{wch:8},{wch:12},{wch:25}];
     XLSX.utils.book_append_sheet(wb, ws, 'Historial');
     XLSX.writeFile(wb, 'historial_gastos_' + hoyISO() + '.xlsx');
     toast('✅ Excel exportado', 'success');
@@ -2280,6 +2282,10 @@ function gmAbrirHistorial() {
             </div>
         </div>
         <div style="display:flex;flex-wrap:wrap;gap:8px;padding:0 20px 14px;align-items:center;">
+            <select id="hist-f-moneda" onchange="renderHistorial()" style="font-size:12px;padding:5px 8px;border:1px solid var(--border);border-radius:4px;background:white;font-weight:700;">
+                <option value="UYU">$U</option>
+                <option value="USD">USD</option>
+            </select>
             <select id="hist-f-tipo" onchange="renderHistorial()" style="font-size:12px;padding:5px 8px;border:1px solid var(--border);border-radius:4px;background:white;">
                 <option value="">Todos los tipos</option>
                 <option value="ingreso">Solo ingresos</option>
@@ -2297,6 +2303,7 @@ function gmAbrirHistorial() {
     </div>
     <div id="historial-contenido" style="flex:1;overflow-y:auto;padding:16px 20px;"></div>`;
     document.body.appendChild(ov);
+    document.getElementById('hist-f-moneda').value = vistaMoneda;
     renderHistorial();
 }
 
@@ -2306,6 +2313,7 @@ function gmLimpiarFiltrosHistorial() {
     document.getElementById('hist-f-monto-min').value = '';
     document.getElementById('hist-f-monto-max').value = '';
     document.getElementById('hist-f-texto').value = '';
+    document.getElementById('hist-f-moneda').value = vistaMoneda;
     renderHistorial();
 }
 
@@ -2319,10 +2327,12 @@ function renderHistorial() {
     const fMontoMin = parseFloat(document.getElementById('hist-f-monto-min')?.value) || 0;
     const fMontoMax = parseFloat(document.getElementById('hist-f-monto-max')?.value) || Infinity;
     const fTexto    = (document.getElementById('hist-f-texto')?.value || '').toLowerCase().trim();
+    const fMoneda   = document.getElementById('hist-f-moneda')?.value || 'UYU';
 
     // Filtrar movimientos
     const movsFiltrados = DB.movimientos.filter(m => {
         if (!m.fecha) return false;
+        if ((m.moneda || 'UYU') !== fMoneda) return false;
         const tipoMov = getTipoMov(m);
         if (fTipo && tipoMov !== fTipo) return false;
         if (fRubroId && m.rubroId !== fRubroId) return false;
@@ -2379,15 +2389,15 @@ function renderHistorial() {
                 <td style="padding:4px 6px;">${mv.fecha}</td>
                 <td style="padding:4px 6px;">${mv.concepto||'-'}</td>
                 <td style="padding:4px 6px;color:var(--text-muted);">${rubro?rubro.nombre:'-'}</td>
-                <td style="padding:4px 6px;text-align:right;color:${color};font-weight:600;">${signo}${fmt(parseFloat(mv.monto)||0)}</td>
+                <td style="padding:4px 6px;text-align:right;color:${color};font-weight:600;">${signo}${fmtMoneda(parseFloat(mv.monto)||0, fMoneda)}</td>
             </tr>`;
         }).join('');
 
         html += `<tr style="border-bottom:1px solid var(--border);" id="fila-hist-${clave}">
             <td style="padding:10px 8px;font-weight:600;">${nombreMes}</td>
-            <td style="padding:10px 8px;text-align:right;color:var(--ingreso);">${fmt(d.ingresos)}</td>
-            <td style="padding:10px 8px;text-align:right;color:var(--gasto);">${fmt(d.gastos)}</td>
-            <td style="padding:10px 8px;text-align:right;font-weight:700;color:${balColor};">${fmt(balance)}</td>
+            <td style="padding:10px 8px;text-align:right;color:var(--ingreso);">${fmtMoneda(d.ingresos, fMoneda)}</td>
+            <td style="padding:10px 8px;text-align:right;color:var(--gasto);">${fmtMoneda(d.gastos, fMoneda)}</td>
+            <td style="padding:10px 8px;text-align:right;font-weight:700;color:${balColor};">${fmtMoneda(balance, fMoneda)}</td>
             <td style="padding:10px 8px;text-align:center;color:var(--text-muted);">${d.movs.length}</td>
             <td style="padding:10px 8px;text-align:center;">
                 <button onclick="toggleDetalleMes('${clave}')" style="background:var(--primary);color:white;border:none;border-radius:4px;padding:3px 10px;font-size:11px;cursor:pointer;" id="btn-hist-${clave}">Ver</button>
