@@ -496,9 +496,20 @@
         <div class="section-subtitle">Seguimiento de fondos guardados por subrubro</div>
       </div>
     </div>
-    <p>Registrá <b>ingresos</b> y <b>retiros</b> de ahorro por subrubro (por ejemplo, "Vacaciones" o "Fondo de emergencia"), cada uno en <b>$U o USD</b>. Cada tarjeta de subrubro muestra su saldo en ambas monedas por separado — no se suman entre sí.</p>
+    <p>Cada ahorro (subrubro) tiene una <b>moneda fija</b> ($U o USD), definida al crearlo. Registrás <b>ingresos</b> y <b>retiros</b> sobre ese ahorro — todos los movimientos quedan automáticamente en su moneda.</p>
+    <h2>Objetivo (opcional)</h2>
+    <p>Al crear o editar un ahorro podés definir, de forma opcional, un <b>monto objetivo</b> y una fecha <b>desde</b>/<b>hasta</b>. Si completás monto y fecha hasta, la tarjeta muestra dos barras:</p>
+    <table>
+      <thead><tr><th>Barra</th><th>Qué muestra</th></tr></thead>
+      <tbody>
+        <tr><td>Monto</td><td>Saldo actual sobre el objetivo (real)</td></tr>
+        <tr><td>Tiempo</td><td>Tiempo transcurrido sobre el tiempo total planeado</td></tr>
+      </tbody>
+    </table>
+    <p>Comparando ambas barras, la tarjeta te dice si vas <b>↑ Adelantado</b> o <b>↓ Atrasado</b>, y cuánto deberías llevar ahorrado a esta altura según el plan.</p>
+    <div class="tip">💡 Si no cargás objetivo, el ahorro funciona igual que antes: solo muestra el saldo.</div>
     <h2>Subrubros</h2>
-    <p>El botón ⚙️ Subrubros te permite crear, renombrar o eliminar las categorías de ahorro.</p>
+    <p>El botón ⚙️ Subrubros te permite crear, editar (nombre, moneda, objetivo y fechas) o eliminar cada ahorro.</p>
   </section>
 
   <!-- HISTORIAL -->
@@ -582,6 +593,17 @@ console.log(gToken ? 'Token activo' : 'Sin token')</pre>
         <div class="section-title">Historial de cambios</div>
         <div class="section-subtitle">Registro de versiones — de más reciente a más antigua</div>
       </div>
+    </div>
+
+    <div class="changelog-entry">
+      <div class="changelog-version"><span class="v-num">v13.84-dev2</span><span class="changelog-tag tag-feature">feature</span></div>
+      <ul class="changelog-list">
+        <li>Rediseño de Ahorros: cada ahorro (subrubro) tiene ahora una moneda fija ($U o USD), en vez de mezclar monedas por movimiento</li>
+        <li>Objetivo opcional por ahorro: monto, fecha de inicio y fecha objetivo</li>
+        <li>Barras de plan vs real (monto y tiempo) en la tarjeta de cada ahorro con objetivo configurado</li>
+        <li>Indicador "↑ Adelantado" / "↓ Atrasado" / "✓ Cumplido" y "Deberías llevar $X" según el plan</li>
+        <li>Edición completa de subrubros (nombre, moneda, objetivo, fechas) reemplaza el prompt() simple de renombrado</li>
+      </ul>
     </div>
 
     <div class="changelog-entry">
