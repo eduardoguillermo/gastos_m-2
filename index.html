@@ -748,8 +748,9 @@
 // ════════════════════════════════════════════════════
 //  CONSTANTES Y ESTADO GLOBAL
 // ════════════════════════════════════════════════════
-const APP_VERSION = '13.89-dev2';
+const APP_VERSION = '13.90-dev2';
 const DEV_MODE = false; // gastos_m-2: Drive habilitado — usa el mismo Client ID/cuenta que prod (prod aún sin datos reales)
+const DRIVE_BACKUP_TAG = 'DEV_'; // gastos_m-2: prefijo propio para no mezclar backups con prod en la misma appDataFolder
 
 let vistaMoneda = 'UYU';
 function fmtVista(v) {
@@ -867,7 +868,7 @@ function gmDriveSubir() {
     gmGetToken(token => {
         const ahora = new Date();
         const ts = `${ahora.getFullYear()}-${String(ahora.getMonth()+1).padStart(2,'0')}-${String(ahora.getDate()).padStart(2,'0')}-${String(ahora.getHours()).padStart(2,'0')}-${String(ahora.getMinutes()).padStart(2,'0')}`;
-        const nombre = `finanzaspro_backup_${ts}.json`;
+        const nombre = `finanzaspro_backup_${DRIVE_BACKUP_TAG}${ts}.json`;
         const data = JSON.stringify(DB, null, 2);
         const meta = JSON.stringify({name: nombre, parents: ['appDataFolder']});
         const form = new FormData();
@@ -887,7 +888,7 @@ function gmDriveRestaurar() {
             {headers:{Authorization:'Bearer '+token}})
         .then(r=>r.json())
         .then(data => {
-            const arch = (data.files||[]).filter(f=>f.name.startsWith('finanzaspro_backup_'));
+            const arch = (data.files||[]).filter(f=>f.name.startsWith('finanzaspro_backup_' + DRIVE_BACKUP_TAG));
             if(!arch.length) { alert('No hay backups en Drive.'); return; }
             gmMostrarModalDrive(arch, token);
         })
@@ -1186,7 +1187,7 @@ async function gmSalir() {
         try {
             const ahora  = new Date();
             const ts     = `${ahora.getFullYear()}-${String(ahora.getMonth()+1).padStart(2,'0')}-${String(ahora.getDate()).padStart(2,'0')}-${String(ahora.getHours()).padStart(2,'0')}-${String(ahora.getMinutes()).padStart(2,'0')}`;
-            const nombre = `finanzaspro_backup_${ts}.json`;
+            const nombre = `finanzaspro_backup_${DRIVE_BACKUP_TAG}${ts}.json`;
             const data   = JSON.stringify(DB, null, 2);
             const meta   = JSON.stringify({name: nombre, parents: ['appDataFolder']});
             const form   = new FormData();
