@@ -419,7 +419,7 @@
 <!-- SPLASH -->
 <div id="splash">
     <div class="splash-logo" id="splash-logo">Finanzas<span>Pro</span></div>
-    <div class="splash-version" style="display:flex;align-items:baseline;gap:8px;justify-content:center;">v13.87-dev2 · Ledger Edition (DEV)</div>
+    <div class="splash-version" id="splash-version" style="display:flex;align-items:baseline;gap:8px;justify-content:center;">v13.91-dev2 · Ledger Edition (DEV)</div>
     <div style="position:absolute;bottom:18%;right:8%;font-family:'Dancing Script',cursive;font-size:32px;color:#93c5fd;pointer-events:none">especial para Mariela</div>
     <div class="splash-progress-track">
         <div class="splash-progress-bar" id="splash-bar"></div>
@@ -748,7 +748,7 @@
 // ════════════════════════════════════════════════════
 //  CONSTANTES Y ESTADO GLOBAL
 // ════════════════════════════════════════════════════
-const APP_VERSION = '13.91-dev2';
+const APP_VERSION = '13.92-dev2';
 const DEV_MODE = false; // gastos_m-2: Drive habilitado — usa el mismo Client ID/cuenta que prod (prod aún sin datos reales)
 const DRIVE_BACKUP_TAG = 'DEV_'; // gastos_m-2: prefijo propio para no mezclar backups con prod en la misma appDataFolder
 
@@ -3982,6 +3982,10 @@ window.addEventListener('DOMContentLoaded', function() {
     // Versión dinámica en header
     const hdrV = document.getElementById('hdr-version');
     if(hdrV) hdrV.textContent = APP_VERSION;
+
+    // Versión dinámica en splash (evita que quede desactualizada a mano)
+    const splashV = document.getElementById('splash-version');
+    if(splashV) splashV.textContent = 'v' + APP_VERSION + ' · Ledger Edition (DEV)';
 
     // Drive: cargar Client ID guardado y mostrar botones si existe
     const savedClientId = gmGetClientId();
