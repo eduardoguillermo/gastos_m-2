@@ -748,7 +748,7 @@
 // ════════════════════════════════════════════════════
 //  CONSTANTES Y ESTADO GLOBAL
 // ════════════════════════════════════════════════════
-const APP_VERSION = '13.92-dev2';
+const APP_VERSION = '13.93-dev2';
 const DEV_MODE = false; // gastos_m-2: Drive habilitado — usa el mismo Client ID/cuenta que prod (prod aún sin datos reales)
 const DRIVE_BACKUP_TAG = 'DEV_'; // gastos_m-2: prefijo propio para no mezclar backups con prod en la misma appDataFolder
 
@@ -1244,6 +1244,28 @@ function gmGuardarGastoRapido() {
     montoEl.focus();
 }
 
+// ── Backup silencioso a Drive (sin alert, sin cerrar pestaña) ──
+// Se usa en visibilitychange/beforeunload para que el cierre real suba a Drive,
+// no solo el snapshot local.
+async function gmBackupSilenciosoDrive() {
+    const tieneClientId = !DEV_MODE && !!gmGetClientId();
+    const tieneToken    = tieneClientId && gmGTokenCargarLocal();
+    if (!tieneToken) return; // sin token cacheado no se puede subir sin popup
+    try {
+        const ahora  = new Date();
+        const ts     = `${ahora.getFullYear()}-${String(ahora.getMonth()+1).padStart(2,'0')}-${String(ahora.getDate()).padStart(2,'0')}-${String(ahora.getHours()).padStart(2,'0')}-${String(ahora.getMinutes()).padStart(2,'0')}`;
+        const nombre = `finanzaspro_backup_${DRIVE_BACKUP_TAG}${ts}.json`;
+        const data   = JSON.stringify(DB, null, 2);
+        const meta   = JSON.stringify({name: nombre, parents: ['appDataFolder']});
+        const form   = new FormData();
+        form.append('metadata', new Blob([meta], {type:'application/json'}));
+        form.append('file',     new Blob([data], {type:'application/json'}));
+        await fetch(
+            'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',
+            {method:'POST', headers:{Authorization:'Bearer '+gmGToken}, body:form, keepalive:true}
+        );
+    } catch(e) { /* silencioso: no interrumpir el cierre de la app */ }
+}
 async function gmSalir() {
     const lineas = [];
 
@@ -4001,9 +4023,9 @@ window.addEventListener('DOMContentLoaded', function() {
     }
 
     // Cierre seguro: snapshot local al cerrar con X
-    window.addEventListener('beforeunload', () => { gmHacerSnapshot(false); });
+    window.addEventListener('beforeunload', () => { gmHacerSnapshot(false); gmBackupSilenciosoDrive(); });
     document.addEventListener('visibilitychange', () => {
-        if(document.visibilityState === 'hidden') gmHacerSnapshot(false);
+        if(document.visibilityState === 'hidden') { gmHacerSnapshot(false); gmBackupSilenciosoDrive(); }
     });
 
     // Vista rápida: apertura automática en pantallas angostas (una vez por sesión)
