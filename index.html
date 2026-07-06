@@ -406,9 +406,10 @@
         .vr-footer{ padding:14px 18px 22px; border-top:1px solid #262a34; }
         .vr-save-btn{ width:100%; padding:15px; border:none; border-radius:16px; background:linear-gradient(135deg,#7c3aed,#c026d3); color:#fff; font-size:15px; font-weight:700; letter-spacing:.3px; cursor:pointer; }
         .vr-field-error{ box-shadow:0 0 0 2px #dc2626 !important; }
-        #btn-vista-rapida{
-            background:linear-gradient(135deg,#7c3aed,#c026d3); color:#fff; border:none; border-radius:6px;
-            font-size:10px; font-weight:700; padding:3px 9px; letter-spacing:.3px; cursor:pointer; margin-left:2px;
+        /* En móvil, la vista rápida es la única pantalla: sin botón para volver al detalle */
+        @media (max-width: 480px) {
+            .vr-cerrar{ display:none; }
+            body.gm-forzar-completa .vr-cerrar{ display:inline-block; }
         }
     </style>
   <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&display=swap" rel="stylesheet">
@@ -449,7 +450,6 @@
             <h1>Finanzas<span>Pro</span></h1>
             <span class="hdr-version" id="hdr-version">${APP_VERSION}</span>
             <span style="background:#dc2626;color:white;font-size:10px;font-weight:800;padding:2px 8px;border-radius:4px;letter-spacing:.5px;margin-left:2px;">DEV</span>
-            <button id="btn-vista-rapida" onclick="gmAbrirVistaRapida()">📱 Rápida</button>
             <div class="vista-moneda-switch">
                 <button id="btn-vista-ars" class="vista-moneda-btn vista-moneda-activa" onclick="cambiarVistaMoneda('UYU')">$U</button>
                 <button id="btn-vista-usd" class="vista-moneda-btn" onclick="cambiarVistaMoneda('USD')">USD</button>
@@ -748,7 +748,7 @@
 // ════════════════════════════════════════════════════
 //  CONSTANTES Y ESTADO GLOBAL
 // ════════════════════════════════════════════════════
-const APP_VERSION = '13.93-dev2';
+const APP_VERSION = '13.94-dev2';
 const DEV_MODE = false; // gastos_m-2: Drive habilitado — usa el mismo Client ID/cuenta que prod (prod aún sin datos reales)
 const DRIVE_BACKUP_TAG = 'DEV_'; // gastos_m-2: prefijo propio para no mezclar backups con prod en la misma appDataFolder
 
@@ -4028,9 +4028,11 @@ window.addEventListener('DOMContentLoaded', function() {
         if(document.visibilityState === 'hidden') { gmHacerSnapshot(false); gmBackupSilenciosoDrive(); }
     });
 
-    // Vista rápida: apertura automática en pantallas angostas (una vez por sesión)
-    if (window.innerWidth <= 480 && !sessionStorage.getItem('gmdev2_vr_auto')) {
-        sessionStorage.setItem('gmdev2_vr_auto', '1');
+    // Vista rápida: en móvil es la pantalla fija (sin botón para salir a la app completa).
+    // Escape hatch oculto para soporte/depuración: abrir con ?completa=1 en la URL.
+    const forzarCompleta = new URLSearchParams(location.search).get('completa') === '1';
+    if (forzarCompleta) document.body.classList.add('gm-forzar-completa');
+    if (window.innerWidth <= 480 && !forzarCompleta) {
         setTimeout(() => gmAbrirVistaRapida(), 5300);
     }
 });
