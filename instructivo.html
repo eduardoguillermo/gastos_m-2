@@ -255,6 +255,7 @@
 
   <div class="section-label">Secciones principales</div>
   <a href="#carga">✍️ Carga</a>
+  <a href="#vista-rapida">📱 Vista rápida (móvil)</a>
   <a href="#rubros">📁 Rubros</a>
   <a href="#cuentas">🏦 Cuentas</a>
   <a href="#fijos">📋 Fijos</a>
@@ -273,6 +274,7 @@
   <a href="#backup">💾 Backup y datos</a>
   <a href="#salir">🚪 Salir</a>
   <a href="#consola">🛠 Comandos consola</a>
+  <a href="#pendientes">📌 Pendientes conocidos</a>
 
   <div class="section-label">Historial</div>
   <a href="#changelog">🧾 Historial de cambios</a>
@@ -284,7 +286,7 @@
     <h1>💵 FinanzasPro Ledger</h1>
     <p>Manual completo de usuario — Registro diario de gastos e ingresos</p>
     <div class="hero-badges">
-      <span class="badge badge-green">✓ v13.77</span>
+      <span class="badge badge-green">✓ v13.94-dev2</span>
       <span class="badge badge-blue">✓ Sin servidor</span>
       <span class="badge badge-amber">✓ Datos locales</span>
     </div>
@@ -352,6 +354,26 @@
     <div class="tip">💡 El campo Notas autocompleta con notas y conceptos usados antes — empezá a tipear y elegí de la lista.</div>
   </section>
 
+  <!-- VISTA RÁPIDA MÓVIL -->
+  <section class="section" id="vista-rapida">
+    <div class="section-header">
+      <span class="section-icon">📱</span>
+      <div>
+        <div class="section-title">Vista rápida (móvil)</div>
+        <div class="section-subtitle">Carga de gastos en una sola pantalla, pensada para el celular</div>
+      </div>
+    </div>
+    <p>Al entrar desde un celular (ancho de pantalla ≤480px), la app abre automáticamente una pantalla simplificada en vez del dashboard completo: monto grande, chips de rubro, cuenta, fecha y una nota opcional. Es la única pantalla visible en el cel — no hay botón para pasar al dashboard completo.</p>
+    <div class="steps">
+      <div class="step"><div class="step-num"></div><div class="step-body">Tocá el <b>monto</b> (el teclado numérico aparece solo) y elegí <b>$U/USD</b> si hace falta.</div></div>
+      <div class="step"><div class="step-num"></div><div class="step-body">Tocá el <b>rubro</b> — los chips muestran primero los más usados recientemente.</div></div>
+      <div class="step"><div class="step-num"></div><div class="step-body">Revisá <b>fecha</b> y <b>cuenta</b> (vienen precargadas con hoy y la última usada).</div></div>
+      <div class="step"><div class="step-num"></div><div class="step-body">Tocá <b>Guardar gasto</b>. El formulario se limpia solo para cargar el siguiente.</div></div>
+    </div>
+    <div class="tip">💡 Los rubros y cuentas son los mismos que en la PC — no hay que mantenerlos por separado.</div>
+    <div class="info">ℹ️ Salida oculta para soporte/depuración: entrando con <code>?completa=1</code> al final de la URL se salta la vista rápida y muestra el dashboard completo con el botón de cerrar visible.</div>
+  </section>
+
   <!-- RUBROS -->
   <section class="section" id="rubros">
     <div class="section-header">
@@ -378,8 +400,9 @@
     </div>
     <p>Siempre existe la cuenta <b>Efectivo</b>. Podés nombrar hasta 3 cuentas de débito adicionales (banco, Mercado Pago, billetera virtual, etc.).</p>
     <h2>Google Drive (opcional)</h2>
-    <p>Pegá tu <b>Client ID</b> de Google Cloud Console para habilitar el backup en Drive. Sin este dato, los botones de Drive quedan ocultos y solo se usan carpeta local y snapshots.</p>
-    <div class="warning">⚠️ El Client ID es por dispositivo/navegador — si cambiás de PC, hay que configurarlo de nuevo.</div>
+    <p>Pegá tu <b>Client ID</b> de Google Cloud Console para habilitar el backup en Drive. Sin este dato, los botones de Drive quedan ocultos y solo se usan carpeta local y snapshots. Los botones ☁️/📂 Drive están en el <b>footer</b>, no en esta pestaña.</p>
+    <p>Los backups de este entorno (dev) se suben con el prefijo <code>DEV_</code> en el nombre de archivo, para no mezclarse con los de producción dentro de la misma carpeta oculta de Drive (<code>appDataFolder</code>).</p>
+    <div class="warning">⚠️ El Client ID es por dispositivo/navegador — si cambiás de PC o de celular, hay que pegarlo y autorizarlo de nuevo ahí. Además, la primera vez hay que tocar el botón ☁️ Drive una vez para que aparezca el popup de Google y quede el token guardado — solo pegar el Client ID no alcanza.</div>
   </section>
 
   <!-- FIJOS -->
@@ -542,11 +565,15 @@
       <tbody>
         <tr><td><b>💾 Local (snapshots)</b></td><td>Guarda automáticamente hasta 10 copias en el propio navegador. Se puede restaurar desde el botón "Local" del footer.</td></tr>
         <tr><td><b>📂 Carpeta</b></td><td>Vinculás una carpeta del dispositivo y la app escribe un backup ahí en cada cambio importante (con debounce de 5 segundos).</td></tr>
-        <tr><td><b>☁️ Drive</b></td><td>Requiere Client ID configurado en Cuentas. Subís o restaurás backups manualmente con los botones ☁️ Drive.</td></tr>
+        <tr><td><b>☁️ Drive</b></td><td>Requiere Client ID configurado en Cuentas (y autorización con Google la primera vez). Subís manualmente con ☁️ Drive; restaurás con 📂 Drive.</td></tr>
+        <tr><td><b>🔀 Fusionar (Drive)</b></td><td>Dentro del modal de 📂 Drive: combina los gastos del backup elegido con los que ya tenés localmente, por identidad única (uuid) — no borra nada. Es la opción recomendada frente a "Reemplazar".</td></tr>
+        <tr><td><b>Reemplazar (Drive)</b></td><td>Dentro del mismo modal: borra toda la base local y la cambia por el backup elegido. Usar con cuidado.</td></tr>
+        <tr><td><b>🔄 Sync automático</b></td><td>Al cerrar la pestaña o pasar la app a segundo plano, si hay token de Drive vigente, sube un backup en silencio. Al volver a abrir la app (con token todavía vigente), fusiona sola el backup más nuevo y avisa con un toast.</td></tr>
         <tr><td><b>📥 Exportar / 📤 Importar</b></td><td>Backup manual a un archivo <code>.json</code> que podés guardar donde quieras.</td></tr>
       </tbody>
     </table>
     <div class="warning">⚠️ Ningún método reemplaza a los otros — usalos combinados. Los snapshots locales se pierden si borrás datos del navegador.</div>
+    <div class="info">ℹ️ El token de Google dura ~1 hora. Si pasó más tiempo desde la última vez que abriste la app, el sync automático no se dispara solo (para no interrumpir con un popup de login) — en ese caso hacé 📂 Drive → Fusionar una vez a mano.</div>
   </section>
 
   <!-- SALIR -->
@@ -559,6 +586,7 @@
       </div>
     </div>
     <p>El botón 🚪 Salir del footer guarda un snapshot, intenta backup en carpeta local (si está vinculada) y en Drive (si hay token vigente), y te muestra un resumen del resultado antes de cerrar.</p>
+    <p>Cerrar la pestaña directamente (sin tocar Salir) o pasar la app a segundo plano también guarda el snapshot local <b>y</b> intenta el backup a Drive en silencio (sin alertas ni popups) si ya hay token vigente — no hace falta usar el botón Salir para que el backup a Drive se dispare.</p>
   </section>
 
   <!-- CONSOLA -->
@@ -585,6 +613,24 @@ console.log(JSON.stringify(DB.recurrentes))</pre>
 console.log(gToken ? 'Token activo' : 'Sin token')</pre>
   </section>
 
+  <!-- PENDIENTES -->
+  <section class="section" id="pendientes">
+    <div class="section-header">
+      <span class="section-icon">📌</span>
+      <div>
+        <div class="section-title">Pendientes conocidos</div>
+        <div class="section-subtitle">Limitaciones actuales del sync — no son bugs, son alcance no cubierto todavía</div>
+      </div>
+    </div>
+    <ul class="changelog-list">
+      <li><b>El merge solo cubre movimientos</b> (gastos/ingresos). Rubros, cuentas, ahorros y fijos no se fusionan — si se editan en dos lados a la vez, gana la versión local. Como el cel no los edita, hoy no es un problema real.</li>
+      <li><b>Prod (<code>gastos_m</code>) todavía no tiene ninguno de los cambios de esta sesión</b> — vista rápida, merge real, tag de Drive y el fix del splash existen solo en dev (<code>gastos_m-2</code>). Falta el sync completo dev→prod cuando se decida promoverlo.</li>
+      <li><b>Asimetría en el filtro de Drive:</b> dev solo lista/restaura sus propios backups (prefijo <code>DEV_</code>), pero prod (cuando tenga esta función) seguiría viendo también los de dev mezclados en su lista, salvo que se le agregue el filtro inverso.</li>
+      <li><b>Datos muy viejos sin identidad estable:</b> los movimientos cargados antes de esta función reciben un <code>uuid</code> nuevo la primera vez que se abren en cada dispositivo — si el mismo gasto histórico existiera en dos dispositivos distintos antes del merge, podría duplicarse una vez. Bajo riesgo real porque prod todavía no tiene datos reales.</li>
+      <li><b>Token de Google (~1 hora):</b> pasado ese tiempo, el sync automático al abrir no se dispara solo (para no interrumpir con un popup) — hay que fusionar una vez a mano para renovarlo.</li>
+    </ul>
+  </section>
+
   <!-- CHANGELOG -->
   <section class="section" id="changelog">
     <div class="section-header">
@@ -593,6 +639,62 @@ console.log(gToken ? 'Token activo' : 'Sin token')</pre>
         <div class="section-title">Historial de cambios</div>
         <div class="section-subtitle">Registro de versiones — de más reciente a más antigua</div>
       </div>
+    </div>
+
+    <div class="changelog-entry">
+      <div class="changelog-version"><span class="v-num">v13.94-dev2</span><span class="changelog-tag tag-feature">feature</span></div>
+      <ul class="changelog-list">
+        <li>Vista rápida móvil: ahora es la pantalla fija en celular (ancho ≤480px), sin botón para volver al dashboard completo</li>
+        <li>Botón "📱 Rápida" quitado del header en PC — la PC solo muestra el dashboard completo</li>
+        <li>Escape hatch oculto <code>?completa=1</code> en la URL para ver el dashboard completo desde el cel (soporte/depuración)</li>
+      </ul>
+    </div>
+
+    <div class="changelog-entry">
+      <div class="changelog-version"><span class="v-num">v13.93-dev2</span><span class="changelog-tag tag-fix">fix</span></div>
+      <ul class="changelog-list">
+        <li>Corregido: cerrar la pestaña o pasar la app a segundo plano ahora también sube el backup a Drive en silencio (antes solo guardaba snapshot local, sin tocar Drive)</li>
+      </ul>
+    </div>
+
+    <div class="changelog-entry">
+      <div class="changelog-version"><span class="v-num">v13.92-dev2</span><span class="changelog-tag tag-fix">fix</span></div>
+      <ul class="changelog-list">
+        <li>La versión mostrada en el splash ahora se sincroniza sola con <code>APP_VERSION</code> por JS, en vez de quedar escrita a mano en el HTML (evita que vuelva a desactualizarse)</li>
+      </ul>
+    </div>
+
+    <div class="changelog-entry">
+      <div class="changelog-version"><span class="v-num">v13.91-dev2</span><span class="changelog-tag tag-feature">feature</span></div>
+      <ul class="changelog-list">
+        <li>Merge real de movimientos: cada gasto tiene identidad estable (<code>uuid</code> + <code>lastModified</code>), combinable entre dispositivos sin perder datos</li>
+        <li>Nuevo botón 🔀 Fusionar en el modal de Drive (además de "Reemplazar", que sigue disponible)</li>
+        <li>Sync automático y silencioso al abrir la app: si hay token de Drive vigente, fusiona sola el backup más nuevo y avisa con un toast</li>
+      </ul>
+    </div>
+
+    <div class="changelog-entry">
+      <div class="changelog-version"><span class="v-num">v13.90-dev2</span><span class="changelog-tag tag-infra">infra</span></div>
+      <ul class="changelog-list">
+        <li>Backups de Drive en dev ahora usan el prefijo <code>DEV_</code> en el nombre de archivo, para no mezclarse con los de producción dentro de la misma carpeta oculta (<code>appDataFolder</code>)</li>
+        <li>El listado/restauración desde Drive en dev solo muestra sus propios backups</li>
+      </ul>
+    </div>
+
+    <div class="changelog-entry">
+      <div class="changelog-version"><span class="v-num">v13.89-dev2</span><span class="changelog-tag tag-infra">infra</span></div>
+      <ul class="changelog-list">
+        <li>Drive habilitado en el entorno dev (antes bloqueado por completo mientras <code>DEV_MODE</code> estaba activo) — usa el mismo Client ID/cuenta que producción, ya que prod todavía no tiene datos reales</li>
+      </ul>
+    </div>
+
+    <div class="changelog-entry">
+      <div class="changelog-version"><span class="v-num">v13.88-dev2</span><span class="changelog-tag tag-feature">feature</span></div>
+      <ul class="changelog-list">
+        <li>Nueva Vista rápida móvil de carga de gastos: monto, rubro (chips), cuenta, fecha y nota opcional en una sola pantalla</li>
+        <li>Rubros y cuentas se leen de la misma base que la PC, sin datos hardcodeados</li>
+        <li>Cada gasto cargado desde esta vista queda con <code>uuid</code> y <code>lastModified</code> propios, pensado para el merge posterior con Drive</li>
+      </ul>
     </div>
 
     <div class="changelog-entry">
