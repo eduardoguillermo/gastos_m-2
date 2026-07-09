@@ -748,7 +748,7 @@
 // ════════════════════════════════════════════════════
 //  CONSTANTES Y ESTADO GLOBAL
 // ════════════════════════════════════════════════════
-const APP_VERSION = '13.94-dev2';
+const APP_VERSION = '13.95-dev2';
 const DEV_MODE = false; // gastos_m-2: Drive habilitado — usa el mismo Client ID/cuenta que prod (prod aún sin datos reales)
 const DRIVE_BACKUP_TAG = 'DEV_'; // gastos_m-2: prefijo propio para no mezclar backups con prod en la misma appDataFolder
 
@@ -3916,6 +3916,10 @@ window.addEventListener('DOMContentLoaded', function() {
     if (navigator.storage && navigator.storage.persist) {
         navigator.storage.persist().catch(function(){});
     }
+
+    // Reconecta/renueva el token de Drive en silencio al abrir (sin popup, solo si
+    // Drive ya está configurado), para que al tocar Salir el backup sea instantáneo.
+    if (!DEV_MODE && gmGetClientId()) { gmGetToken(function(){}); }
 
     // Cargar datos
     let rawData = localStorage.getItem(SKEY);
